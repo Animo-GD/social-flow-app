@@ -135,7 +135,7 @@ export const translations = {
     nav_posts: 'المحتوى والمنشورات',
     nav_messages: 'الرسائل',
     nav_analytics: 'التحليلات',
-    nav_trends: 'الاتجاهات',
+    nav_trends: 'التريند',
     nav_settings: 'الإعدادات',
     nav_signout: 'تسجيل الخروج',
 
@@ -214,7 +214,7 @@ export const translations = {
     btn_reconnect: 'إعادة الاتصال',
 
     // Trends page
-    page_trends_title: 'المواضيع الرائجة',
+    page_trends_title: 'التريند',
     page_trends_sub: 'اكتشف ما يكتسب زخمًا على منصات التواصل الاجتماعي',
     hottest_trend: 'أكثر الاتجاهات سخونة',
     avg_growth: 'متوسط النمو',
@@ -226,7 +226,7 @@ export const translations = {
     col_posts_count: 'المنشورات',
     col_action: 'إجراء',
     btn_create_post: 'إنشاء منشور',
-    trending_label: 'أبرز المواضيع الرائجة',
+    trending_label: 'أبرز التريندات',
 
     // Login
     login_welcome: 'مرحبًا بعودتك',
