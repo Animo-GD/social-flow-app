@@ -1,0 +1,80 @@
+// API client — all calls go through NEXT_PUBLIC_API_URL
+
+const BASE = process.env.NEXT_PUBLIC_API_URL || '';
+
+async function req<T>(path: string, options?: RequestInit): Promise<T> {
+  const res = await fetch(`${BASE}${path}`, {
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    ...options,
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ message: res.statusText }));
+    throw new Error(err.message || 'Request failed');
+  }
+  return res.json();
+}
+
+// ── Posts ──
+export interface Post {
+  id: string;
+  platform: 'instagram' | 'linkedin' | 'x';
+  status: 'scheduled' | 'posted' | 'failed';
+  publish_at: string;
+  text?: string;
+  image_url?: string;
+}
+
+export const api = {
+  // Content
+  generateContent: (body: { topic: string; platform: string; tone: string; language: string }) =>
+    req<{ text: string; image_url?: string }>('/api/content/generate', { method: 'POST', body: JSON.stringify(body) }),
+
+  // Posts
+  getPosts: () => req<Post[]>('/api/posts'),
+  schedulePost: (body: { text: string; image_url?: string; platform: string; publish_at: string }) =>
+    req<Post>('/api/posts/schedule', { method: 'POST', body: JSON.stringify(body) }),
+  deletePost: (id: string) => req<void>(`/api/posts/${id}`, { method: 'DELETE' }),
+
+  // Messages
+  getConversations: () => req<Conversation[]>('/api/messages'),
+  getMessages: (id: string) => req<Message[]>(`/api/messages/${id}`),
+  sendMessage: (id: string, text: string) =>
+    req<Message>(`/api/messages/${id}/send`, { method: 'POST', body: JSON.stringify({ text }) }),
+
+  // Analytics
+  getAnalytics: () => req<Analytics>('/api/analytics'),
+
+  // Settings
+  getSettings: () => req<Settings>('/api/settings'),
+  updateSettings: (body: Partial<Settings>) =>
+    req<Settings>('/api/settings/update', { method: 'POST', body: JSON.stringify(body) }),
+};
+
+export interface Conversation {
+  id: string;
+  user: string;
+  platform: 'whatsapp' | 'telegram';
+  last_message: string;
+  timestamp: string;
+  unread?: number;
+}
+
+export interface Message {
+  id: string;
+  sender: 'user' | 'agent';
+  text: string;
+  timestamp: string;
+  rag_context?: string;
+}
+
+export interface Analytics {
+  likes: number;
+  comments: number;
+  shares: number;
+  engagement_rate: number;
+  time_series: { date: string; posts: number; engagement: number }[];
+}
+
+export interface Settings {
+  connections: { platform: string; status: 'connected' | 'disconnected' }[];
+}

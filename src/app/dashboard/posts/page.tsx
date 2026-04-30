@@ -1,0 +1,253 @@
+'use client';
+
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { api, Post } from '@/lib/api';
+import { Loader2, Sparkles, Calendar, Trash2, Clock, CheckCircle, XCircle, Image as ImageIcon, FileText } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { Toaster } from 'react-hot-toast';
+import { useLang } from '@/lib/LanguageContext';
+
+const PLATFORMS = ['instagram', 'linkedin', 'x'] as const;
+const TONES     = ['formal', 'casual', 'sales'] as const;
+
+function StatusBadge({ status, t }: { status: Post['status']; t: (k: string) => string }) {
+  if (status === 'posted')   return <span className="badge badge-success"><CheckCircle size={10} style={{ marginInlineEnd: 3 }} />{t('status_posted')}</span>;
+  if (status === 'failed')   return <span className="badge badge-error"><XCircle size={10} style={{ marginInlineEnd: 3 }} />{t('status_failed')}</span>;
+  return <span className="badge"><Clock size={10} style={{ marginInlineEnd: 3 }} />{t('status_scheduled')}</span>;
+}
+
+export default function PostsPage() {
+  const { t } = useLang();
+  const qc = useQueryClient();
+  const [tab, setTab] = useState<'create' | 'scheduled'>('create');
+  const [form, setForm] = useState({ topic: '', platform: 'instagram', tone: 'casual', language: 'en' });
+  const [generated, setGenerated] = useState<{ text: string; image_url?: string } | null>(null);
+  const [editedText, setEditedText] = useState('');
+  const [scheduleAt, setScheduleAt] = useState('');
+  const [filter, setFilter] = useState({ platform: '', status: '' });
+
+  const { data: posts, isLoading: postsLoading } = useQuery({ queryKey: ['posts'], queryFn: api.getPosts });
+
+  const generateMutation = useMutation({
+    mutationFn: api.generateContent,
+    onSuccess: (data) => { setGenerated(data); setEditedText(data.text); toast.success(t('toast_content_generated')); },
+    onError: () => toast.error(t('toast_generation_failed')),
+  });
+
+  const scheduleMutation = useMutation({
+    mutationFn: api.schedulePost,
+    onSuccess: () => {
+      toast.success(t('toast_post_scheduled'));
+      qc.invalidateQueries({ queryKey: ['posts'] });
+      setGenerated(null); setScheduleAt(''); setTab('scheduled');
+    },
+    onError: () => toast.error(t('toast_scheduling_failed')),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: api.deletePost,
+    onSuccess: () => { toast.success(t('toast_post_deleted')); qc.invalidateQueries({ queryKey: ['posts'] }); },
+    onError: () => toast.error(t('toast_delete_failed')),
+  });
+
+  const filtered = posts?.filter(p => {
+    if (filter.platform && p.platform !== filter.platform) return false;
+    if (filter.status   && p.status   !== filter.status)   return false;
+    return true;
+  }) ?? [];
+
+  function handleGenerate() {
+    if (!form.topic.trim()) { toast.error(t('toast_enter_topic')); return; }
+    generateMutation.mutate(form);
+  }
+
+  function handleSchedule() {
+    if (!generated || !scheduleAt) { toast.error(t('toast_enter_topic')); return; }
+    scheduleMutation.mutate({ text: editedText, image_url: generated.image_url, platform: form.platform, publish_at: scheduleAt });
+  }
+
+  function handleDelete(id: string) {
+    if (!confirm(t('confirm_delete_post'))) return;
+    deleteMutation.mutate(id);
+  }
+
+  const toneLabels: Record<string, string> = {
+    formal: t('tone_formal'), casual: t('tone_casual'), sales: t('tone_sales'),
+  };
+
+  return (
+    <div>
+      <Toaster position="top-right" />
+      <div className="page-header">
+        <h1 className="text-heading">{t('page_posts_title')}</h1>
+        <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.94rem', marginTop: 4 }}>
+          {t('page_posts_sub')}
+        </p>
+      </div>
+
+      <div className="page-body">
+        <div className="tabs">
+          <button className={`tab-btn${tab === 'create' ? ' active' : ''}`} onClick={() => setTab('create')}>
+            <Sparkles size={14} style={{ marginInlineEnd: 6, verticalAlign: 'middle' }} />{t('tab_create')}
+          </button>
+          <button className={`tab-btn${tab === 'scheduled' ? ' active' : ''}`} onClick={() => setTab('scheduled')}>
+            <Calendar size={14} style={{ marginInlineEnd: 6, verticalAlign: 'middle' }} />{t('tab_scheduled')}
+            {posts && <span className="badge" style={{ marginInlineStart: 8 }}>{posts.filter(p => p.status === 'scheduled').length}</span>}
+          </button>
+        </div>
+
+        {tab === 'create' && (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
+            <div className="card">
+              <h2 className="text-subhead" style={{ marginBottom: 20 }}>{t('generate_content_title')}</h2>
+
+              <div className="form-group">
+                <label className="form-label" htmlFor="topic">{t('label_topic')}</label>
+                <input id="topic" className="form-input" value={form.topic} onChange={e => setForm(f => ({ ...f, topic: e.target.value }))} />
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label className="form-label" htmlFor="platform">{t('label_platform')}</label>
+                  <select id="platform" className="form-select" value={form.platform} onChange={e => setForm(f => ({ ...f, platform: e.target.value }))}>
+                    {PLATFORMS.map(p => <option key={p} value={p} style={{ textTransform: 'capitalize' }}>{p}</option>)}
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-label" htmlFor="tone">{t('label_tone')}</label>
+                  <select id="tone" className="form-select" value={form.tone} onChange={e => setForm(f => ({ ...f, tone: e.target.value }))}>
+                    {TONES.map(tone => <option key={tone} value={tone}>{toneLabels[tone]}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label" htmlFor="lang">{t('label_language_content')}</label>
+                <select id="lang" className="form-select" value={form.language} onChange={e => setForm(f => ({ ...f, language: e.target.value }))}>
+                  <option value="en">{t('lang_english')}</option>
+                  <option value="ar">{t('lang_arabic')}</option>
+                  <option value="fr">{t('lang_french')}</option>
+                </select>
+              </div>
+
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                <button className="btn btn-primary" onClick={handleGenerate} disabled={generateMutation.isPending}>
+                  {generateMutation.isPending ? <Loader2 size={14} className="spin" /> : <FileText size={14} />}
+                  {t('btn_generate_text')}
+                </button>
+                <button className="btn btn-secondary" onClick={handleGenerate} disabled={generateMutation.isPending}>
+                  <ImageIcon size={14} /> {t('btn_generate_image')}
+                </button>
+                <button className="btn btn-secondary" onClick={handleGenerate} disabled={generateMutation.isPending}>
+                  <Sparkles size={14} /> {t('btn_generate_both')}
+                </button>
+              </div>
+            </div>
+
+            <div>
+              {generated ? (
+                <div className="content-preview">
+                  <div className="preview-header">
+                    <span>{t('preview_label')} — {form.platform}</span>
+                    <span className="badge badge-gray" style={{ textTransform: 'capitalize' }}>{toneLabels[form.tone]}</span>
+                  </div>
+                  {generated.image_url && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={generated.image_url} alt="Generated" className="preview-image" />
+                  )}
+                  <div className="preview-body">
+                    <textarea className="form-textarea" value={editedText} onChange={e => setEditedText(e.target.value)} rows={6} style={{ marginBottom: 16 }} />
+                    <hr className="divider" />
+                    <div className="form-group">
+                      <label className="form-label" htmlFor="schedule-at">{t('label_schedule_datetime')}</label>
+                      <input id="schedule-at" type="datetime-local" className="form-input" value={scheduleAt} onChange={e => setScheduleAt(e.target.value)} />
+                    </div>
+                    <button className="btn btn-primary" onClick={handleSchedule} disabled={scheduleMutation.isPending} style={{ width: '100%', justifyContent: 'center' }}>
+                      {scheduleMutation.isPending ? <Loader2 size={14} className="spin" /> : <Calendar size={14} />}
+                      {t('btn_schedule_post')}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="card-flat empty-state" style={{ minHeight: 320 }}>
+                  <Sparkles size={40} />
+                  <p className="text-body-med" style={{ color: 'var(--color-text-secondary)' }}>{t('generate_empty_title')}</p>
+                  <p style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>{t('generate_empty_sub')}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {tab === 'scheduled' && (
+          <div>
+            <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
+              <select className="form-select" style={{ width: 'auto', minWidth: 140 }} value={filter.platform} onChange={e => setFilter(f => ({ ...f, platform: e.target.value }))}>
+                <option value="">{t('filter_all_platforms')}</option>
+                {PLATFORMS.map(p => <option key={p} value={p} style={{ textTransform: 'capitalize' }}>{p}</option>)}
+              </select>
+              <select className="form-select" style={{ width: 'auto', minWidth: 140 }} value={filter.status} onChange={e => setFilter(f => ({ ...f, status: e.target.value }))}>
+                <option value="">{t('filter_all_status')}</option>
+                <option value="scheduled">{t('status_scheduled')}</option>
+                <option value="posted">{t('status_posted')}</option>
+                <option value="failed">{t('status_failed')}</option>
+              </select>
+            </div>
+
+            {postsLoading ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {[1,2,3,4].map(i => <div key={i} className="skeleton" style={{ height: 56, borderRadius: 8 }} />)}
+              </div>
+            ) : filtered.length === 0 ? (
+              <div className="empty-state">
+                <Calendar size={40} />
+                <p>{t('no_posts_found')}</p>
+              </div>
+            ) : (
+              <div className="table-wrap">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>{t('col_platform')}</th>
+                      <th>{t('col_content')}</th>
+                      <th>{t('col_status')}</th>
+                      <th>{t('col_scheduled_at')}</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filtered.map(post => (
+                      <tr key={post.id}>
+                        <td><span className="badge badge-gray" style={{ textTransform: 'capitalize' }}>{post.platform}</span></td>
+                        <td style={{ maxWidth: 280 }}>
+                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block', fontSize: '0.88rem', color: 'var(--color-text-secondary)' }}>
+                            {post.text || '—'}
+                          </span>
+                        </td>
+                        <td><StatusBadge status={post.status} t={t} /></td>
+                        <td style={{ fontSize: '0.82rem', color: 'var(--color-text-secondary)' }}>
+                          {new Date(post.publish_at).toLocaleString()}
+                        </td>
+                        <td>
+                          <button
+                            className="btn-icon btn-ghost" title="Delete"
+                            disabled={deleteMutation.isPending}
+                            onClick={() => handleDelete(post.id)}
+                          >
+                            <Trash2 size={14} style={{ color: 'var(--color-error)' }} />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+      <style>{`.spin { animation: spin 1s linear infinite; } @keyframes spin { to { transform: rotate(360deg); } }`}</style>
+    </div>
+  );
+}
