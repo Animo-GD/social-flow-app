@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabase-admin';
 import { getSession } from '@/lib/session';
 
 export const dynamic = 'force-dynamic';
@@ -29,13 +29,13 @@ export async function POST(req: NextRequest) {
   const filename = `${session.id}_${randomNum}_${baseName}.${safeExt}`;
   const path = `${session.id}/${filename}`;
 
-  const { error } = await supabase.storage.from('images').upload(path, buffer, {
+  const { error } = await supabaseAdmin.storage.from('images').upload(path, buffer, {
     contentType: file.type,
     upsert: false,
   });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  const { data } = supabase.storage.from('images').getPublicUrl(path);
+  const { data } = supabaseAdmin.storage.from('images').getPublicUrl(path);
   return NextResponse.json({ url: data.publicUrl, path });
 }
