@@ -4,6 +4,7 @@ import { FormEvent, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { useLang } from '@/lib/LanguageContext';
+import { Mail, Users, UserPlus, ShieldAlert, Trash2 } from 'lucide-react';
 
 export default function AdminUsersPage() {
   const { t } = useLang();
@@ -33,6 +34,18 @@ export default function AdminUsersPage() {
   });
 
   const users = useMemo(() => data ?? [], [data]);
+  const createdToday = useMemo(() => {
+    const today = new Date();
+    return users.filter((user) => {
+      if (!user.created_at) return false;
+      const d = new Date(user.created_at);
+      return (
+        d.getFullYear() === today.getFullYear() &&
+        d.getMonth() === today.getMonth() &&
+        d.getDate() === today.getDate()
+      );
+    }).length;
+  }, [users]);
 
   function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -50,45 +63,81 @@ export default function AdminUsersPage() {
       </div>
 
       <div className="page-body" style={{ display: 'grid', gap: 20 }}>
+        <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
+          <div className="stat-card">
+            <div className="stat-label"><Users size={14} style={{ verticalAlign: 'middle', marginRight: 6 }} /> Total Users</div>
+            <div className="stat-value">{users.length}</div>
+            <div className="stat-sub">Accounts in system</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-label"><UserPlus size={14} style={{ verticalAlign: 'middle', marginRight: 6 }} /> Created Today</div>
+            <div className="stat-value">{createdToday}</div>
+            <div className="stat-sub">New registrations</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-label"><Mail size={14} style={{ verticalAlign: 'middle', marginRight: 6 }} /> Email Coverage</div>
+            <div className="stat-value">{users.filter((u) => !!u.email).length}</div>
+            <div className="stat-sub">Users with valid email</div>
+          </div>
+        </div>
+
         <div className="card">
-          <h2 className="text-subhead" style={{ marginBottom: 16 }}>{t('admin_create_user')}</h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+            <ShieldAlert size={18} />
+            <h2 className="text-subhead">{t('admin_create_user')}</h2>
+          </div>
           <form onSubmit={onSubmit} style={{ display: 'grid', gap: 12, maxWidth: 560 }}>
-            <input
-              className="form-input"
-              placeholder={t('label_email')}
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-            <input
-              className="form-input"
-              placeholder={t('admin_name_optional')}
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
-            <input
-              className="form-input"
-              type="password"
-              placeholder={t('label_password')}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={6}
-            />
+            <div className="form-row">
+              <div>
+                <label className="form-label">{t('label_email')}</label>
+                <input
+                  className="form-input"
+                  placeholder="name@domain.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+              <div>
+                <label className="form-label">{t('admin_name_optional')}</label>
+                <input
+                  className="form-input"
+                  placeholder="Full name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+              </div>
+            </div>
+            <div style={{ maxWidth: 280 }}>
+              <label className="form-label">{t('label_password')}</label>
+              <input
+                className="form-input"
+                type="password"
+                placeholder="Minimum 6 characters"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={6}
+              />
+            </div>
             {formError ? <p style={{ color: 'var(--color-error)', margin: 0 }}>{formError}</p> : null}
-            <button className="btn btn-primary" type="submit" disabled={createUser.isPending}>
+            <button className="btn btn-primary" type="submit" disabled={createUser.isPending} style={{ width: 'fit-content' }}>
+              <UserPlus size={14} />
               {createUser.isPending ? t('admin_creating') : t('admin_create_btn')}
             </button>
           </form>
         </div>
 
         <div className="card">
-          <h2 className="text-subhead" style={{ marginBottom: 16 }}>{t('admin_users_list')}</h2>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+            <h2 className="text-subhead">{t('admin_users_list')}</h2>
+            <span className="badge badge-gray">{users.length} users</span>
+          </div>
           {isLoading ? <p>{t('loading')}</p> : null}
           {error ? <p style={{ color: 'var(--color-error)' }}>{(error as Error).message}</p> : null}
           {!isLoading && !error ? (
-            <div style={{ overflowX: 'auto' }}>
-              <table className="table">
+            <div className="table-wrap" style={{ overflowX: 'auto' }}>
+              <table className="data-table">
                 <thead>
                   <tr>
                     <th>{t('label_email')}</th>
@@ -105,12 +154,13 @@ export default function AdminUsersPage() {
                       <td>{user.created_at ? new Date(user.created_at).toLocaleString() : '-'}</td>
                       <td>
                         <button
-                          className="btn btn-secondary btn-sm"
+                          className="btn btn-danger btn-sm"
                           onClick={() => {
                             if (confirm(`Delete ${user.email}?`)) deleteUser.mutate(user.id);
                           }}
                           disabled={deleteUser.isPending}
                         >
+                          <Trash2 size={12} />
                           {t('admin_delete_btn')}
                         </button>
                       </td>
