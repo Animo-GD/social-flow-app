@@ -1,10 +1,11 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard, FileText, MessageCircle, BarChart2,
-  Settings, TrendingUp, Zap, LogOut, Building2, Shield,
+  Settings, TrendingUp, LogOut, Building2, Shield,
 } from 'lucide-react';
 import { useLang } from '@/lib/LanguageContext';
 import type { TranslationKey } from '@/lib/i18n';
@@ -29,7 +30,7 @@ export default function Sidebar() {
       {/* Brand */}
       <div className="sidebar-brand">
         <div className="sidebar-brand-icon">
-          <Zap size={18} color="#fff" />
+          <Image src="/socialflow-logo.svg" alt="SocialFlow logo" width={22} height={22} style={{ display: 'block' }} />
         </div>
         <span className="sidebar-brand-name">SocialFlow</span>
       </div>

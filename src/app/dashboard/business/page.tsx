@@ -5,7 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast, { Toaster } from 'react-hot-toast';
 import { useLang } from '@/lib/LanguageContext';
 import {
-  Building2, Globe, Users, Mic2, Hash, FileText,
+  Building2, Globe, Users, Mic2, FileText, Lightbulb,
   Plus, Trash2, Save, Loader2, ChevronDown, ChevronUp,
 } from 'lucide-react';
 
@@ -227,7 +227,7 @@ export default function BusinessPage() {
         <form onSubmit={handleSubmit}>
 
           {/* ── 1. Business Identity ── */}
-          <Section icon={Building2} title={lang === 'ar' ? '🏢 هوية العمل' : '🏢 Business Identity'}>
+          <Section icon={Building2} title={lang === 'ar' ? 'هوية العمل' : 'Business Identity'}>
             <div className="form-row">
               <div className="form-group">
                 <label className="form-label">{lang === 'ar' ? 'اسم العمل *' : 'Business Name *'}</label>
@@ -269,7 +269,7 @@ export default function BusinessPage() {
           </Section>
 
           {/* ── 2. Target Audience ── */}
-          <Section icon={Users} title={lang === 'ar' ? '🎯 الجمهور المستهدف' : '🎯 Target Audience'}>
+          <Section icon={Users} title={lang === 'ar' ? 'الجمهور المستهدف' : 'Target Audience'}>
             <div className="form-group">
               <label className="form-label">{lang === 'ar' ? 'من هو جمهورك؟' : 'Who is your audience?'}</label>
               <textarea className="form-textarea" rows={3} value={form.target_audience}
@@ -307,7 +307,7 @@ export default function BusinessPage() {
           </Section>
 
           {/* ── 3. Brand Voice ── */}
-          <Section icon={Mic2} title={lang === 'ar' ? '🎙️ صوت العلامة التجارية' : '🎙️ Brand Voice & Style'}>
+          <Section icon={Mic2} title={lang === 'ar' ? 'صوت العلامة التجارية' : 'Brand Voice & Style'}>
             <div className="form-row">
               <div className="form-group">
                 <label className="form-label">{lang === 'ar' ? 'نبرة الصوت' : 'Brand Voice'}</label>
@@ -366,7 +366,7 @@ export default function BusinessPage() {
           </Section>
 
           {/* ── 4. Example Posts ── */}
-          <Section icon={FileText} title={lang === 'ar' ? '📝 مشاركات مرجعية' : '📝 Example Posts'} defaultOpen={false}>
+          <Section icon={FileText} title={lang === 'ar' ? 'مشاركات مرجعية' : 'Example Posts'} defaultOpen={false}>
             <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.85rem', marginBottom: 16 }}>
               {lang === 'ar'
                 ? 'أضف منشورات ناجحة سابقة حتى يتعلم الذكاء الاصطناعي أسلوبك'
@@ -399,7 +399,8 @@ export default function BusinessPage() {
                 </p>
                 {post.notes && (
                   <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: 6, marginBottom: 0 }}>
-                    💡 {post.notes}
+                    <Lightbulb size={12} style={{ marginInlineEnd: 6, verticalAlign: 'text-top' }} />
+                    {post.notes}
                   </p>
                 )}
               </div>
@@ -450,7 +451,7 @@ export default function BusinessPage() {
           </Section>
 
           {/* ── 5. Website & SEO ── */}
-          <Section icon={Globe} title={lang === 'ar' ? '🌐 هاشتاق SEO' : '🌐 Discovery & SEO'} defaultOpen={false}>
+          <Section icon={Globe} title={lang === 'ar' ? 'هاشتاق SEO' : 'Discovery & SEO'} defaultOpen={false}>
             <TagInput
               label={lang === 'ar' ? 'الهاشتاقات' : 'Hashtags'}
               values={form.hashtags}
