@@ -10,6 +10,12 @@ const PUBLIC_PREFIXES = ['/login', '/api/auth', '/api/health', '/_next', '/favic
 export default async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
+  // Some clients/extensions can issue non-GET verbs to /login.
+  // Avoid 405 on the page route and keep login UX responsive.
+  if (pathname === '/login' && req.method !== 'GET' && req.method !== 'HEAD') {
+    return NextResponse.json({ ok: true }, { status: 200 });
+  }
+
   // Allow public paths
   if (PUBLIC_PREFIXES.some(p => pathname.startsWith(p))) {
     return NextResponse.next();
