@@ -16,3 +16,13 @@ export async function GET(req: NextRequest) {
 export async function POST() {
   return NextResponse.json({ error: 'Use /api/auth/login' }, { status: 404 });
 }
+
+export async function DELETE(req: NextRequest) {
+  const res = NextResponse.redirect(new URL('/login', req.url));
+  res.cookies.delete('sf_session');
+  return res;
+}
+
+export async function OPTIONS() {
+  return new NextResponse(null, { status: 204 });
+}

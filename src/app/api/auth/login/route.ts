@@ -62,3 +62,7 @@ export async function DELETE() {
   await clearSession();
   return NextResponse.json({ ok: true });
 }
+
+export async function OPTIONS() {
+  return new NextResponse(null, { status: 204 });
+}
