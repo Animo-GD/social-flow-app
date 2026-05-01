@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard, FileText, MessageCircle, BarChart2,
-  Settings, TrendingUp, LogOut, Building2, Shield,
+  Settings, TrendingUp, LogOut, Building2, Shield, X,
 } from 'lucide-react';
 import { useLang } from '@/lib/LanguageContext';
 import type { TranslationKey } from '@/lib/i18n';
@@ -21,18 +21,21 @@ const NAV: { href: string; key: TranslationKey; icon: React.ComponentType<{ size
   { href: '/dashboard/settings',   key: 'nav_settings',   icon: Settings },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ mobileOpen, onClose }: { mobileOpen?: boolean; onClose?: () => void }) {
   const path = usePathname();
   const { lang, setLang, t } = useLang();
 
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar${mobileOpen ? ' mobile-open' : ''}`}>
       {/* Brand */}
       <div className="sidebar-brand">
         <div className="sidebar-brand-icon">
           <Image src="/socialflow-logo.svg" alt="SocialFlow logo" width={22} height={22} style={{ display: 'block' }} />
         </div>
         <span className="sidebar-brand-name">SocialFlow</span>
+        <button className="mobile-close-btn" type="button" aria-label="Close menu" onClick={onClose}>
+          <X size={18} />
+        </button>
       </div>
 
       {/* Nav */}
@@ -40,7 +43,7 @@ export default function Sidebar() {
         {NAV.map(({ href, key, icon: Icon }) => {
           const active = path === href || (href !== '/dashboard' && path.startsWith(href));
           return (
-            <Link key={href} href={href} className={`sidebar-link${active ? ' active' : ''}`}>
+            <Link key={href} href={href} className={`sidebar-link${active ? ' active' : ''}`} onClick={onClose}>
               <Icon size={16} />
               {t(key)}
             </Link>
