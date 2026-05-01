@@ -67,7 +67,7 @@ export default function LoginPage() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} action="javascript:void(0)">
             <div className="form-group">
               <label className="form-label" htmlFor="email">{t('label_email')}</label>
               <input
@@ -95,7 +95,7 @@ export default function LoginPage() {
           </form>
 
           <p style={{ textAlign: 'center', marginTop: 20, fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>
-            {t('login_demo')} <strong>admin@socialflow.ai</strong> / <strong>demo</strong>
+            {t('login_demo')} <strong>Moaaz@gmail.com</strong> / <strong>demo</strong>
           </p>
         </div>
       </div>
