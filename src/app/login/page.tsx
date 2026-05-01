@@ -38,11 +38,6 @@ export default function LoginPage() {
     setLoading(false);
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    await login();
-  }
-
   return (
     <div style={{
       minHeight: '100vh', display: 'flex', alignItems: 'center',
@@ -71,7 +66,7 @@ export default function LoginPage() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit}>
+          <div>
             <div className="form-group">
               <label className="form-label" htmlFor="email">{t('label_email')}</label>
               <input
@@ -85,18 +80,25 @@ export default function LoginPage() {
               <input
                 id="password" type="password" className="form-input"
                 value={password} onChange={e => setPassword(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter' && !loading) {
+                    e.preventDefault();
+                    void login();
+                  }
+                }}
                 placeholder="••••••••" required
               />
             </div>
             <button
-              type="submit" className="btn btn-primary"
+              type="button" className="btn btn-primary"
               style={{ width: '100%', justifyContent: 'center', marginTop: 8 }}
               disabled={loading}
+              onClick={() => void login()}
             >
               {loading && <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} />}
               {loading ? t('btn_signing_in') : t('btn_signin')}
             </button>
-          </form>
+          </div>
 
           <p style={{ textAlign: 'center', marginTop: 20, fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>
             {t('login_demo')} <strong>Moaaz@gmail.com</strong> / <strong>demo</strong>
