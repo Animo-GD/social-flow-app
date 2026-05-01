@@ -8,8 +8,8 @@ import { useLang } from '@/lib/LanguageContext';
 export default function LoginPage() {
   const router = useRouter();
   const { t } = useLang();
-  const [email, setEmail] = useState('admin@socialflow.ai');
-  const [password, setPassword] = useState('demo');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
