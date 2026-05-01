@@ -99,10 +99,6 @@ export default function LoginPage() {
               {loading ? t('btn_signing_in') : t('btn_signin')}
             </button>
           </div>
-
-          <p style={{ textAlign: 'center', marginTop: 20, fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>
-            {t('login_demo')} <strong>Moaaz@gmail.com</strong> / <strong>demo</strong>
-          </p>
         </div>
       </div>
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>

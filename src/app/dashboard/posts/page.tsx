@@ -33,6 +33,8 @@ export default function PostsPage() {
   const [editedText, setEditedText] = useState('');
   const [scheduleAt, setScheduleAt] = useState('');
   const [filter, setFilter] = useState({ platform: '', status: '' });
+  const [productImage, setProductImage] = useState<File | null>(null);
+  const [productImageUrl, setProductImageUrl] = useState<string>('');
 
   // Async generation state
   const [activeJobId, setActiveJobId] = useState<string | null>(null);
@@ -74,10 +76,29 @@ export default function PostsPage() {
     if (!form.topic.trim()) { toast.error(t('toast_enter_topic')); return; }
 
     try {
+      let uploadedImageUrl = productImageUrl;
+
+      if (productImage) {
+        const fd = new FormData();
+        fd.append('file', productImage);
+
+        const upRes = await fetch('/api/uploads/product-image', {
+          method: 'POST',
+          body: fd,
+        });
+        const upData = await upRes.json();
+        if (!upRes.ok) {
+          toast.error(upData.error || 'Image upload failed');
+          return;
+        }
+        uploadedImageUrl = upData.url;
+        setProductImageUrl(uploadedImageUrl);
+      }
+
       const res = await fetch('/api/content/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, product_image_url: uploadedImageUrl || null }),
       });
       const data = await res.json();
 
@@ -144,7 +165,7 @@ export default function PostsPage() {
         </div>
 
         {tab === 'create' && (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
+          <div className="grid-2">
             {/* ── Form ── */}
             <div className="card">
               <h2 className="text-subhead" style={{ marginBottom: 20 }}>{t('generate_content_title')}</h2>
@@ -181,6 +202,22 @@ export default function PostsPage() {
                   <option value="ar">{t('lang_arabic')}</option>
                   <option value="fr">{t('lang_french')}</option>
                 </select>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label" htmlFor="product-image">Product Image (Optional)</label>
+                <input
+                  id="product-image"
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  className="form-input"
+                  onChange={e => setProductImage(e.target.files?.[0] ?? null)}
+                />
+                {(productImage || productImageUrl) && (
+                  <p style={{ marginTop: 6, fontSize: '0.82rem', color: 'var(--color-text-secondary)' }}>
+                    {productImage ? `Selected: ${productImage.name}` : 'Image uploaded and ready'}
+                  </p>
+                )}
               </div>
 
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -274,7 +311,7 @@ export default function PostsPage() {
         {/* ── Scheduled posts table ── */}
         {tab === 'scheduled' && (
           <div>
-            <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
+            <div className="filters-row">
               <select
                 className="form-select" style={{ width: 'auto', minWidth: 140 }}
                 value={filter.platform} onChange={e => setFilter(f => ({ ...f, platform: e.target.value }))}

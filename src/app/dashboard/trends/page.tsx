@@ -25,7 +25,7 @@ export default function TrendsPage() {
       </div>
 
       <div className="page-body">
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 32 }}>
+        <div className="grid-3" style={{ marginBottom: 32 }}>
           <div className="stat-card">
             <div className="stat-label"><Flame size={14} style={{ marginInlineEnd: 4, verticalAlign: 'middle', color: '#dd5b00' }} />{t('hottest_trend')}</div>
             <div className="stat-value" style={{ fontSize: '1.25rem' }}>#AIMarketing</div>

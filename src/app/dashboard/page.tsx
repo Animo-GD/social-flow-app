@@ -63,7 +63,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
+        <div className="grid-2">
           <div className="card">
             <h2 className="text-subhead" style={{ marginBottom: 16 }}>{t('recent_posts')}</h2>
             {postsLoading ? (

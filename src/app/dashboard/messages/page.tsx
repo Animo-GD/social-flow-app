@@ -44,7 +44,7 @@ export default function MessagesPage() {
       </div>
 
       <div className="page-body" style={{ padding: 0 }}>
-        <div className="chat-wrap" style={{ height: 'calc(100vh - 140px)' }}>
+        <div className="chat-wrap">
           {/* Conversations List */}
           <div className="conversations-list">
             {isLoading ? (

@@ -63,7 +63,7 @@ export default function AdminUsersPage() {
       </div>
 
       <div className="page-body" style={{ display: 'grid', gap: 20 }}>
-        <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
+        <div className="grid-3">
           <div className="stat-card">
             <div className="stat-label"><Users size={14} style={{ verticalAlign: 'middle', marginRight: 6 }} /> Total Users</div>
             <div className="stat-value">{users.length}</div>

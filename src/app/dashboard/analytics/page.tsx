@@ -27,7 +27,7 @@ export default function AnalyticsPage() {
       </div>
 
       <div className="page-body">
-        <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)', marginBottom: 32 }}>
+        <div className="grid-4" style={{ marginBottom: 32 }}>
           {metrics.map(m => (
             <div key={m.labelKey} className="stat-card">
               <div className="stat-label" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
