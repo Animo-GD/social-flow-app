@@ -6,6 +6,12 @@ const SECRET = new TextEncoder().encode(
 );
 const COOKIE = 'sf_session';
 const MAX_AGE = 60 * 60 * 24 * 7; // 7 days
+const COOKIE_SECURE =
+  process.env.SESSION_COOKIE_SECURE === 'true'
+    ? true
+    : process.env.SESSION_COOKIE_SECURE === 'false'
+      ? false
+      : process.env.NODE_ENV === 'production';
 
 export interface SessionUser {
   id: string;
@@ -26,7 +32,7 @@ export async function createSession(user: SessionUser) {
     sameSite: 'lax',
     path: '/',
     maxAge: MAX_AGE,
-    secure: process.env.NODE_ENV === 'production',
+    secure: COOKIE_SECURE,
   });
 }
 
