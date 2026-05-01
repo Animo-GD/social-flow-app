@@ -1,6 +1,27 @@
 // API client — all calls go through NEXT_PUBLIC_API_URL
 
-const BASE = process.env.NEXT_PUBLIC_API_URL || '';
+function resolveBaseUrl() {
+  const configured = process.env.NEXT_PUBLIC_API_URL || '';
+  if (!configured) return '';
+  if (typeof window === 'undefined') return configured;
+
+  const browserHost = window.location.hostname;
+  const browserIsLocal = browserHost === 'localhost' || browserHost === '127.0.0.1';
+
+  try {
+    const configuredUrl = new URL(configured);
+    const configuredHost = configuredUrl.hostname;
+    const configuredIsLocal = configuredHost === 'localhost' || configuredHost === '127.0.0.1';
+
+    if (!browserIsLocal && configuredIsLocal) return '';
+  } catch {
+    return '';
+  }
+
+  return configured;
+}
+
+const BASE = resolveBaseUrl();
 
 async function req<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
