@@ -1,11 +1,16 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { getSession } from '@/lib/session';
 
 export async function GET() {
+  const session = await getSession();
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
   // Aggregate totals + 7-day time series in one go
   const { data: rows, error } = await supabase
     .from('analytics_daily')
     .select('snapshot_date, likes, comments, shares, posts_count, engagement')
+    .eq('user_id', session.id)
     .order('snapshot_date', { ascending: true })
     .limit(7);
 
