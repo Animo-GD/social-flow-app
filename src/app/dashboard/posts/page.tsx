@@ -1,12 +1,17 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api, Post } from '@/lib/api';
+import dynamic from 'next/dynamic';
 import { Loader2, Sparkles, Calendar, Trash2, Clock, CheckCircle, XCircle, Image as ImageIcon, FileText } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Toaster } from 'react-hot-toast';
 import { useLang } from '@/lib/LanguageContext';
+
+// Inline card — shown in the preview panel, not fullscreen
+const GeneratingCard = dynamic(() => import('@/components/GeneratingCard'), { ssr: false });
+
 
 const PLATFORMS = ['instagram', 'linkedin', 'x'] as const;
 const TONES     = ['formal', 'casual', 'sales'] as const;
@@ -20,6 +25,7 @@ function StatusBadge({ status, t }: { status: Post['status']; t: (k: string) => 
 export default function PostsPage() {
   const { t } = useLang();
   const qc = useQueryClient();
+
   const [tab, setTab] = useState<'create' | 'scheduled'>('create');
   const [form, setForm] = useState({ topic: '', platform: 'instagram', tone: 'casual', language: 'en' });
   const [generated, setGenerated] = useState<{ text: string; image_url?: string } | null>(null);
@@ -27,14 +33,12 @@ export default function PostsPage() {
   const [scheduleAt, setScheduleAt] = useState('');
   const [filter, setFilter] = useState({ platform: '', status: '' });
 
+  // Async generation state
+  const [activeJobId, setActiveJobId] = useState<string | null>(null);
+
   const { data: posts, isLoading: postsLoading } = useQuery({ queryKey: ['posts'], queryFn: api.getPosts });
 
-  const generateMutation = useMutation({
-    mutationFn: api.generateContent,
-    onSuccess: (data) => { setGenerated(data); setEditedText(data.text); toast.success(t('toast_content_generated')); },
-    onError: () => toast.error(t('toast_generation_failed')),
-  });
-
+  // ── Schedule mutation ──────────────────────────────────────────────
   const scheduleMutation = useMutation({
     mutationFn: api.schedulePost,
     onSuccess: () => {
@@ -51,19 +55,52 @@ export default function PostsPage() {
     onError: () => toast.error(t('toast_delete_failed')),
   });
 
-  const filtered = posts?.filter(p => {
-    if (filter.platform && p.platform !== filter.platform) return false;
-    if (filter.status   && p.status   !== filter.status)   return false;
-    return true;
-  }) ?? [];
+  // ── Generation callbacks ───────────────────────────────────────────
+  const handleGenerationComplete = useCallback((result: { text: string; image_url?: string }) => {
+    setActiveJobId(null);
+    setGenerated(result);
+    setEditedText(result.text);
+    toast.success(t('toast_content_generated'));
+  }, [t]);
 
-  function handleGenerate() {
+  const handleGenerationError = useCallback((msg: string) => {
+    setActiveJobId(null);
+    toast.error(msg || t('toast_generation_failed'));
+  }, [t]);
+
+  // ── Start generation ───────────────────────────────────────────────
+  async function handleGenerate() {
     if (!form.topic.trim()) { toast.error(t('toast_enter_topic')); return; }
-    generateMutation.mutate(form);
+
+    try {
+      const res = await fetch('/api/content/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast.error(data.error || t('toast_generation_failed'));
+        return;
+      }
+
+      if (data.sync) {
+        // n8n responded synchronously (no generation_jobs table)
+        setGenerated(data);
+        setEditedText(data.text);
+        toast.success(t('toast_content_generated'));
+      } else {
+        // Async: show overlay and poll
+        setActiveJobId(data.job_id);
+      }
+    } catch (err) {
+      toast.error(t('toast_generation_failed'));
+    }
   }
 
   function handleSchedule() {
-    if (!generated || !scheduleAt) { toast.error(t('toast_enter_topic')); return; }
+    if (!generated || !scheduleAt) return;
     scheduleMutation.mutate({ text: editedText, image_url: generated.image_url, platform: form.platform, publish_at: scheduleAt });
   }
 
@@ -72,6 +109,12 @@ export default function PostsPage() {
     deleteMutation.mutate(id);
   }
 
+  const filtered = posts?.filter(p => {
+    if (filter.platform && p.platform !== filter.platform) return false;
+    if (filter.status   && p.status   !== filter.status)   return false;
+    return true;
+  }) ?? [];
+
   const toneLabels: Record<string, string> = {
     formal: t('tone_formal'), casual: t('tone_casual'), sales: t('tone_sales'),
   };
@@ -79,6 +122,8 @@ export default function PostsPage() {
   return (
     <div>
       <Toaster position="top-right" />
+
+
       <div className="page-header">
         <h1 className="text-heading">{t('page_posts_title')}</h1>
         <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.94rem', marginTop: 4 }}>
@@ -99,12 +144,18 @@ export default function PostsPage() {
 
         {tab === 'create' && (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
+            {/* ── Form ── */}
             <div className="card">
               <h2 className="text-subhead" style={{ marginBottom: 20 }}>{t('generate_content_title')}</h2>
 
               <div className="form-group">
                 <label className="form-label" htmlFor="topic">{t('label_topic')}</label>
-                <input id="topic" className="form-input" value={form.topic} onChange={e => setForm(f => ({ ...f, topic: e.target.value }))} />
+                <input
+                  id="topic" className="form-input"
+                  value={form.topic}
+                  onChange={e => setForm(f => ({ ...f, topic: e.target.value }))}
+                  onKeyDown={e => e.key === 'Enter' && handleGenerate()}
+                />
               </div>
 
               <div className="form-row">
@@ -132,21 +183,42 @@ export default function PostsPage() {
               </div>
 
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                <button className="btn btn-primary" onClick={handleGenerate} disabled={generateMutation.isPending}>
-                  {generateMutation.isPending ? <Loader2 size={14} className="spin" /> : <FileText size={14} />}
+                <button
+                  className="btn btn-primary"
+                  onClick={handleGenerate}
+                  disabled={!!activeJobId}
+                >
+                  {activeJobId ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <FileText size={14} />}
                   {t('btn_generate_text')}
                 </button>
-                <button className="btn btn-secondary" onClick={handleGenerate} disabled={generateMutation.isPending}>
+                <button
+                  className="btn btn-secondary"
+                  onClick={handleGenerate}
+                  disabled={!!activeJobId}
+                >
                   <ImageIcon size={14} /> {t('btn_generate_image')}
                 </button>
-                <button className="btn btn-secondary" onClick={handleGenerate} disabled={generateMutation.isPending}>
+                <button
+                  className="btn btn-secondary"
+                  onClick={handleGenerate}
+                  disabled={!!activeJobId}
+                >
                   <Sparkles size={14} /> {t('btn_generate_both')}
                 </button>
               </div>
             </div>
 
+            {/* ── Preview / Generating Card ── */}
             <div>
-              {generated ? (
+              {activeJobId ? (
+                // Generating — show Remotion animation inline
+                <GeneratingCard
+                  jobId={activeJobId}
+                  onComplete={handleGenerationComplete}
+                  onError={handleGenerationError}
+                />
+              ) : generated ? (
+                // Done — show editable result
                 <div className="content-preview">
                   <div className="preview-header">
                     <span>{t('preview_label')} — {form.platform}</span>
@@ -157,20 +229,38 @@ export default function PostsPage() {
                     <img src={generated.image_url} alt="Generated" className="preview-image" />
                   )}
                   <div className="preview-body">
-                    <textarea className="form-textarea" value={editedText} onChange={e => setEditedText(e.target.value)} rows={6} style={{ marginBottom: 16 }} />
+                    <textarea
+                      className="form-textarea"
+                      value={editedText}
+                      onChange={e => setEditedText(e.target.value)}
+                      rows={6}
+                      style={{ marginBottom: 16 }}
+                    />
                     <hr className="divider" />
                     <div className="form-group">
                       <label className="form-label" htmlFor="schedule-at">{t('label_schedule_datetime')}</label>
-                      <input id="schedule-at" type="datetime-local" className="form-input" value={scheduleAt} onChange={e => setScheduleAt(e.target.value)} />
+                      <input
+                        id="schedule-at" type="datetime-local" className="form-input"
+                        value={scheduleAt} onChange={e => setScheduleAt(e.target.value)}
+                      />
                     </div>
-                    <button className="btn btn-primary" onClick={handleSchedule} disabled={scheduleMutation.isPending} style={{ width: '100%', justifyContent: 'center' }}>
-                      {scheduleMutation.isPending ? <Loader2 size={14} className="spin" /> : <Calendar size={14} />}
+                    <button
+                      className="btn btn-primary"
+                      onClick={handleSchedule}
+                      disabled={scheduleMutation.isPending}
+                      style={{ width: '100%', justifyContent: 'center' }}
+                    >
+                      {scheduleMutation.isPending
+                        ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />
+                        : <Calendar size={14} />
+                      }
                       {t('btn_schedule_post')}
                     </button>
                   </div>
                 </div>
               ) : (
-                <div className="card-flat empty-state" style={{ minHeight: 320 }}>
+                // Empty state
+                <div className="card-flat empty-state" style={{ minHeight: 380 }}>
                   <Sparkles size={40} />
                   <p className="text-body-med" style={{ color: 'var(--color-text-secondary)' }}>{t('generate_empty_title')}</p>
                   <p style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>{t('generate_empty_sub')}</p>
@@ -180,14 +270,21 @@ export default function PostsPage() {
           </div>
         )}
 
+        {/* ── Scheduled posts table ── */}
         {tab === 'scheduled' && (
           <div>
             <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
-              <select className="form-select" style={{ width: 'auto', minWidth: 140 }} value={filter.platform} onChange={e => setFilter(f => ({ ...f, platform: e.target.value }))}>
+              <select
+                className="form-select" style={{ width: 'auto', minWidth: 140 }}
+                value={filter.platform} onChange={e => setFilter(f => ({ ...f, platform: e.target.value }))}
+              >
                 <option value="">{t('filter_all_platforms')}</option>
                 {PLATFORMS.map(p => <option key={p} value={p} style={{ textTransform: 'capitalize' }}>{p}</option>)}
               </select>
-              <select className="form-select" style={{ width: 'auto', minWidth: 140 }} value={filter.status} onChange={e => setFilter(f => ({ ...f, status: e.target.value }))}>
+              <select
+                className="form-select" style={{ width: 'auto', minWidth: 140 }}
+                value={filter.status} onChange={e => setFilter(f => ({ ...f, status: e.target.value }))}
+              >
                 <option value="">{t('filter_all_status')}</option>
                 <option value="scheduled">{t('status_scheduled')}</option>
                 <option value="posted">{t('status_posted')}</option>
@@ -247,6 +344,7 @@ export default function PostsPage() {
           </div>
         )}
       </div>
+
       <style>{`.spin { animation: spin 1s linear infinite; } @keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
