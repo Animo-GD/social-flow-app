@@ -24,7 +24,9 @@ export async function POST(req: NextRequest) {
   const buffer = Buffer.from(bytes);
   const ext = file.name.includes('.') ? file.name.split('.').pop() : 'png';
   const safeExt = (ext || 'png').toLowerCase().replace(/[^a-z0-9]/g, '');
-  const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}.${safeExt}`;
+  const randomNum = Math.floor(Math.random() * 1_000_000_000);
+  const baseName = file.name.replace(/\.[^/.]+$/, '').replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 60) || 'product';
+  const filename = `${session.id}_${randomNum}_${baseName}.${safeExt}`;
   const path = `${session.id}/${filename}`;
 
   const { error } = await supabase.storage.from('images').upload(path, buffer, {
