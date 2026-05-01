@@ -9,6 +9,7 @@ export const translations = {
     nav_analytics: 'Analytics',
     nav_trends: 'Trends',
     nav_business: 'Business Profile',
+    nav_admin: 'Admin',
     nav_settings: 'Settings',
     nav_signout: 'Sign out',
 
@@ -86,6 +87,19 @@ export const translations = {
     platform_connections: 'Platform Connections',
     btn_reconnect: 'Reconnect',
 
+    // Admin page
+    page_admin_title: 'Developer Admin',
+    page_admin_sub: 'Manage application user accounts',
+    admin_create_user: 'Create New User',
+    admin_name_optional: 'Name (optional)',
+    admin_create_btn: 'Create User',
+    admin_creating: 'Creating...',
+    admin_users_list: 'User Accounts',
+    admin_name_col: 'Name',
+    admin_created_col: 'Created At',
+    admin_delete_btn: 'Delete',
+    admin_empty: 'No users found',
+
     // Trends page
     page_trends_title: 'Trending Topics',
     page_trends_sub: "Discover what's gaining traction on social platforms",
@@ -138,6 +152,7 @@ export const translations = {
     nav_analytics: 'التحليلات',
     nav_trends: 'التريند',
     nav_business: 'الملف التجاري',
+    nav_admin: 'لوحة المطور',
     nav_settings: 'الإعدادات',
     nav_signout: 'تسجيل الخروج',
 
@@ -214,6 +229,19 @@ export const translations = {
     page_settings_sub: 'إدارة اتصالات المنصات',
     platform_connections: 'اتصالات المنصات',
     btn_reconnect: 'إعادة الاتصال',
+
+    // Admin page
+    page_admin_title: 'لوحة المطور',
+    page_admin_sub: 'إدارة حسابات المستخدمين',
+    admin_create_user: 'إنشاء مستخدم جديد',
+    admin_name_optional: 'الاسم (اختياري)',
+    admin_create_btn: 'إنشاء مستخدم',
+    admin_creating: 'جارٍ الإنشاء...',
+    admin_users_list: 'حسابات المستخدمين',
+    admin_name_col: 'الاسم',
+    admin_created_col: 'تاريخ الإنشاء',
+    admin_delete_btn: 'حذف',
+    admin_empty: 'لا يوجد مستخدمون',
 
     // Trends page
     page_trends_title: 'التريند',

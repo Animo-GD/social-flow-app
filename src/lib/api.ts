@@ -69,6 +69,12 @@ export const api = {
   getSettings: () => req<Settings>('/api/settings'),
   updateSettings: (body: Partial<Settings>) =>
     req<Settings>('/api/settings/update', { method: 'POST', body: JSON.stringify(body) }),
+
+  // Admin Users
+  getAdminUsers: () => req<AdminUser[]>('/api/admin/users'),
+  createAdminUser: (body: { email: string; name?: string; password: string }) =>
+    req<AdminUser>('/api/admin/users', { method: 'POST', body: JSON.stringify(body) }),
+  deleteAdminUser: (id: string) => req<{ ok: true }>(`/api/admin/users/${id}`, { method: 'DELETE' }),
 };
 
 export interface Conversation {
@@ -98,4 +104,11 @@ export interface Analytics {
 
 export interface Settings {
   connections: { platform: string; status: 'connected' | 'disconnected' }[];
+}
+
+export interface AdminUser {
+  id: string;
+  name: string;
+  email: string;
+  created_at?: string;
 }

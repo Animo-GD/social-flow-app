@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard, FileText, MessageCircle, BarChart2,
-  Settings, TrendingUp, Zap, LogOut, Building2,
+  Settings, TrendingUp, Zap, LogOut, Building2, Shield,
 } from 'lucide-react';
 import { useLang } from '@/lib/LanguageContext';
 import type { TranslationKey } from '@/lib/i18n';
@@ -16,6 +16,7 @@ const NAV: { href: string; key: TranslationKey; icon: React.ComponentType<{ size
   { href: '/dashboard/analytics',  key: 'nav_analytics',  icon: BarChart2 },
   { href: '/dashboard/trends',     key: 'nav_trends',     icon: TrendingUp },
   { href: '/dashboard/business',   key: 'nav_business',   icon: Building2 },
+  { href: '/dashboard/admin',      key: 'nav_admin',      icon: Shield },
   { href: '/dashboard/settings',   key: 'nav_settings',   icon: Settings },
 ];
 

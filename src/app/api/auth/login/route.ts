@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { createSession, clearSession, getSession } from '@/lib/session';
+import { isAppHash, verifyPassword } from '@/lib/password';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,7 +20,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Look up user
-    const { data: userRow, error: userError } = await supabase
+    const { data: userRow } = await supabase
       .from('users')
       .select('id, name, email, password_hash')
       .eq('email', email)
@@ -36,12 +37,23 @@ export async function POST(req: NextRequest) {
     }
 
     if (!isDemo) {
+      const storedHash = String(userRow.password_hash ?? '');
+
+      if (isAppHash(storedHash)) {
+        if (!verifyPassword(password, storedHash)) {
+          return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
+        }
+      } else {
       const { data: rpcData, error: rpcError } = await supabase.rpc('verify_user_password', {
         p_email: email,
         p_password: password,
       });
-      if (rpcError || !rpcData || rpcData.length === 0) {
-        return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
+        const rpcValid = !rpcError && Array.isArray(rpcData) && rpcData.length > 0;
+        const fallbackValid = storedHash.length > 0 && storedHash === password;
+
+        if (!rpcValid && !fallbackValid) {
+          return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
+        }
       }
     }
 
