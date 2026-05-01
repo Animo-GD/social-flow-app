@@ -1,0 +1,24 @@
+# docker-compose.yml — local testing only
+# Run: docker compose up --build
+# App will be at http://localhost:3000
+
+services:
+  socialflow:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_SUPABASE_URL:      ${NEXT_PUBLIC_SUPABASE_URL}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+        NEXT_PUBLIC_API_URL:           ${NEXT_PUBLIC_API_URL:-http://localhost:3000}
+    ports:
+      - "3000:3000"
+    environment:
+      # Runtime secrets — these are NOT baked into the image
+      NEXT_PUBLIC_SUPABASE_URL:      ${NEXT_PUBLIC_SUPABASE_URL}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+      NEXT_PUBLIC_API_URL:           ${NEXT_PUBLIC_API_URL:-http://localhost:3000}
+      NEXTAUTH_SECRET:               ${NEXTAUTH_SECRET}
+      N8N_CONTENT_GENERATE_URL:      ${N8N_CONTENT_GENERATE_URL}
+      N8N_POST_SCHEDULE_URL:         ${N8N_POST_SCHEDULE_URL:-}
+    restart: unless-stopped

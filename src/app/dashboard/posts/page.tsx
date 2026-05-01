@@ -8,6 +8,7 @@ import { Loader2, Sparkles, Calendar, Trash2, Clock, CheckCircle, XCircle, Image
 import toast from 'react-hot-toast';
 import { Toaster } from 'react-hot-toast';
 import { useLang } from '@/lib/LanguageContext';
+import type { TranslationKey } from '@/lib/i18n';
 
 // Inline card — shown in the preview panel, not fullscreen
 const GeneratingCard = dynamic(() => import('@/components/GeneratingCard'), { ssr: false });
@@ -16,7 +17,7 @@ const GeneratingCard = dynamic(() => import('@/components/GeneratingCard'), { ss
 const PLATFORMS = ['instagram', 'linkedin', 'x'] as const;
 const TONES     = ['formal', 'casual', 'sales'] as const;
 
-function StatusBadge({ status, t }: { status: Post['status']; t: (k: string) => string }) {
+function StatusBadge({ status, t }: { status: Post['status']; t: (k: TranslationKey) => string }) {
   if (status === 'posted')   return <span className="badge badge-success"><CheckCircle size={10} style={{ marginInlineEnd: 3 }} />{t('status_posted')}</span>;
   if (status === 'failed')   return <span className="badge badge-error"><XCircle size={10} style={{ marginInlineEnd: 3 }} />{t('status_failed')}</span>;
   return <span className="badge"><Clock size={10} style={{ marginInlineEnd: 3 }} />{t('status_scheduled')}</span>;
