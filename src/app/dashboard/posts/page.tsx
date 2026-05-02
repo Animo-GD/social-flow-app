@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api, Post } from '@/lib/api';
 import dynamic from 'next/dynamic';
@@ -41,6 +41,7 @@ export default function PostsPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editText, setEditText] = useState('');
   const [editPublishAt, setEditPublishAt] = useState('');
+  const previewTextareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   // Async generation state
   const [activeJobId, setActiveJobId] = useState<string | null>(null);
@@ -212,6 +213,13 @@ export default function PostsPage() {
     formal: t('tone_formal'), casual: t('tone_casual'), sales: t('tone_sales'),
   };
 
+  useEffect(() => {
+    const el = previewTextareaRef.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = `${el.scrollHeight}px`;
+  }, [editedText]);
+
   return (
     <div>
       <Toaster position="top-right" />
@@ -339,11 +347,12 @@ export default function PostsPage() {
                   )}
                   <div className="preview-body">
                     <textarea
+                      ref={previewTextareaRef}
                       className="form-textarea"
                       value={editedText}
                       onChange={e => setEditedText(e.target.value)}
-                      rows={6}
-                      style={{ marginBottom: 16 }}
+                      rows={1}
+                      style={{ marginBottom: 16, resize: 'none', overflow: 'hidden' }}
                     />
                     <hr className="divider" />
                     <div className="form-group">
