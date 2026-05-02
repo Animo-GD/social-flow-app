@@ -18,6 +18,7 @@ const PLATFORMS = ['instagram', 'linkedin', 'x'] as const;
 const TONES     = ['formal', 'casual', 'sales'] as const;
 
 function StatusBadge({ status, t }: { status: Post['status']; t: (k: TranslationKey) => string }) {
+  if (status === 'draft') return <span className="badge badge-gray"><FileText size={10} style={{ marginInlineEnd: 3 }} />Draft</span>;
   if (status === 'posted')   return <span className="badge badge-success"><CheckCircle size={10} style={{ marginInlineEnd: 3 }} />{t('status_posted')}</span>;
   if (status === 'failed')   return <span className="badge badge-error"><XCircle size={10} style={{ marginInlineEnd: 3 }} />{t('status_failed')}</span>;
   if (status === 'completed') return <span className="badge badge-success"><CheckCircle size={10} style={{ marginInlineEnd: 3 }} />Completed</span>;
@@ -186,7 +187,7 @@ export default function PostsPage() {
 
   const filtered = posts?.filter(p => {
     if (filter.platform && p.platform !== filter.platform) return false;
-    if (filter.status   && p.status   !== filter.status)   return false;
+    if (filter.status && p.status !== filter.status) return false;
     return true;
   }) ?? [];
 
@@ -378,6 +379,7 @@ export default function PostsPage() {
               >
                 <option value="">{t('filter_all_status')}</option>
                 <option value="scheduled">{t('status_scheduled')}</option>
+                <option value="draft">Draft</option>
                 <option value="posted">{t('status_posted')}</option>
                 <option value="failed">{t('status_failed')}</option>
               </select>

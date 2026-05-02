@@ -79,10 +79,11 @@ export default function DashboardPage() {
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
                         <span className="badge badge-gray" style={{ textTransform: 'capitalize' }}>{post.platform}</span>
                         <span className={`badge ${post.status === 'posted' || post.status === 'completed' ? 'badge-success' : post.status === 'failed' ? 'badge-error' : ''}`}>
+                          {post.status === 'draft' && <FileText size={10} style={{ marginInlineEnd: 3 }} />}
                           {post.status === 'scheduled' && <Clock size={10} style={{ marginInlineEnd: 3 }} />}
                           {(post.status === 'posted' || post.status === 'completed') && <CheckCircle size={10} style={{ marginInlineEnd: 3 }} />}
-                          {post.status === 'failed'    && <XCircle size={10} style={{ marginInlineEnd: 3 }} />}
-                          {post.status === 'completed' ? 'Completed' : t(`status_${post.status}` as 'status_scheduled' | 'status_posted' | 'status_failed')}
+                          {post.status === 'failed' && <XCircle size={10} style={{ marginInlineEnd: 3 }} />}
+                          {post.status === 'draft' ? 'Draft' : post.status === 'completed' ? 'Completed' : t(`status_${post.status}` as 'status_scheduled' | 'status_posted' | 'status_failed')}
                         </span>
                       </div>
                       <p style={{ fontSize: '0.82rem', color: 'var(--color-text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>

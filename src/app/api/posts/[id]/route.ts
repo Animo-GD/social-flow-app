@@ -23,18 +23,35 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
   const { id } = await params;
   const body = await req.json();
+  let nextStatus: string | null = null;
 
   const updates: Record<string, unknown> = {};
   if (typeof body.text === 'string') updates.text = body.text;
   if (typeof body.image_url === 'string' || body.image_url === null) updates.image_url = body.image_url;
   if (typeof body.publish_at === 'string') {
-    updates.publish_at = body.publish_at.trim() ? body.publish_at : null;
+    const normalizedPublishAt = body.publish_at.trim() ? body.publish_at : null;
+    updates.publish_at = normalizedPublishAt;
+    nextStatus = normalizedPublishAt ? 'scheduled' : 'draft';
   } else if (body.publish_at === null) {
     updates.publish_at = null;
+    nextStatus = 'draft';
   }
 
   if (Object.keys(updates).length === 0) {
     return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 });
+  }
+
+  if (nextStatus) {
+    const { data: current } = await supabase
+      .from('posts')
+      .select('status')
+      .eq('id', id)
+      .eq('user_id', session.id)
+      .single();
+
+    if (current && current.status !== 'posted' && current.status !== 'failed') {
+      updates.status = nextStatus;
+    }
   }
 
   const { data, error } = await supabase

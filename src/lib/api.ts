@@ -39,7 +39,7 @@ async function req<T>(path: string, options?: RequestInit): Promise<T> {
 export interface Post {
   id: string;
   platform: 'instagram' | 'linkedin' | 'x';
-  status: 'scheduled' | 'posted' | 'failed' | 'completed';
+  status: 'draft' | 'scheduled' | 'posted' | 'failed' | 'completed';
   publish_at?: string | null;
   created_at?: string;
   text?: string;
