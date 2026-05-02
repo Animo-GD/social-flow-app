@@ -4,7 +4,7 @@ import { useState, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api, Post } from '@/lib/api';
 import dynamic from 'next/dynamic';
-import { Loader2, Sparkles, Calendar, Trash2, Clock, CheckCircle, XCircle, Image as ImageIcon, FileText } from 'lucide-react';
+import { Loader2, Sparkles, Calendar, Trash2, Clock, CheckCircle, XCircle, Image as ImageIcon, FileText, Pencil } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Toaster } from 'react-hot-toast';
 import { useLang } from '@/lib/LanguageContext';
@@ -36,6 +36,9 @@ export default function PostsPage() {
   const [filter, setFilter] = useState({ platform: '', status: '' });
   const [productImage, setProductImage] = useState<File | null>(null);
   const [productImageUrl, setProductImageUrl] = useState<string>('');
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editText, setEditText] = useState('');
+  const [editPublishAt, setEditPublishAt] = useState('');
 
   // Async generation state
   const [activeJobId, setActiveJobId] = useState<string | null>(null);
@@ -59,11 +62,32 @@ export default function PostsPage() {
     onError: () => toast.error(t('toast_delete_failed')),
   });
 
+  const updateMutation = useMutation({
+    mutationFn: ({ id, body }: { id: string; body: { text?: string; publish_at?: string | null } }) => api.updatePost(id, body),
+    onSuccess: () => {
+      toast.success('Post updated');
+      setEditingId(null);
+      qc.invalidateQueries({ queryKey: ['posts'] });
+    },
+    onError: () => toast.error('Update failed'),
+  });
+
   // ── Generation callbacks ───────────────────────────────────────────
-  const handleGenerationComplete = useCallback((result: { text: string; image_url?: string }) => {
+  const handleGenerationComplete = useCallback(async (result: { text: string; image_url?: string }) => {
     setActiveJobId(null);
-    setGenerated(result);
-    setEditedText(result.text);
+
+    if (result?.text || result?.image_url) {
+      setGenerated(result);
+      setEditedText(result.text || '');
+    } else {
+      const freshPosts = await api.getPosts().catch(() => []);
+      const latestWithContent = freshPosts.find((p) => !!p.text || !!p.image_url);
+      if (latestWithContent) {
+        setGenerated({ text: latestWithContent.text || '', image_url: latestWithContent.image_url || undefined });
+        setEditedText(latestWithContent.text || '');
+      }
+    }
+
     qc.invalidateQueries({ queryKey: ['posts'] });
     toast.success(t('toast_content_generated'));
   }, [qc, t]);
@@ -118,7 +142,7 @@ export default function PostsPage() {
         // Async: show overlay and poll
         setActiveJobId(data.job_id);
       }
-    } catch (err) {
+    } catch {
       toast.error(t('toast_generation_failed'));
     }
   }
@@ -136,6 +160,28 @@ export default function PostsPage() {
   function handleDelete(id: string) {
     if (!confirm(t('confirm_delete_post'))) return;
     deleteMutation.mutate(id);
+  }
+
+  function toDateTimeLocal(iso?: string | null) {
+    if (!iso) return '';
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return '';
+    const tzOffset = d.getTimezoneOffset() * 60000;
+    return new Date(d.getTime() - tzOffset).toISOString().slice(0, 16);
+  }
+
+  function startEdit(post: Post) {
+    setEditingId(post.id);
+    setEditText(post.text || '');
+    setEditPublishAt(toDateTimeLocal(post.publish_at));
+  }
+
+  function saveEdit() {
+    if (!editingId) return;
+    updateMutation.mutate({
+      id: editingId,
+      body: { text: editText, publish_at: editPublishAt || null },
+    });
   }
 
   const filtered = posts?.filter(p => {
@@ -363,22 +409,56 @@ export default function PostsPage() {
                       <tr key={post.id}>
                         <td><span className="badge badge-gray" style={{ textTransform: 'capitalize' }}>{post.platform}</span></td>
                         <td style={{ maxWidth: 280 }}>
-                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block', fontSize: '0.88rem', color: 'var(--color-text-secondary)' }}>
-                            {post.text || '—'}
-                          </span>
+                          {editingId === post.id ? (
+                            <textarea
+                              className="form-textarea"
+                              rows={3}
+                              value={editText}
+                              onChange={e => setEditText(e.target.value)}
+                            />
+                          ) : (
+                            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block', fontSize: '0.88rem', color: 'var(--color-text-secondary)' }}>
+                              {post.text || '—'}
+                            </span>
+                          )}
                         </td>
                         <td><StatusBadge status={post.status} t={t} /></td>
                         <td style={{ fontSize: '0.82rem', color: 'var(--color-text-secondary)' }}>
-                          {post.publish_at ? new Date(post.publish_at).toLocaleString() : 'Not scheduled'}
+                          {editingId === post.id ? (
+                            <input
+                              type="datetime-local"
+                              className="form-input"
+                              value={editPublishAt}
+                              onChange={e => setEditPublishAt(e.target.value)}
+                            />
+                          ) : (
+                            post.publish_at ? new Date(post.publish_at).toLocaleString() : 'Not scheduled'
+                          )}
                         </td>
                         <td>
-                          <button
-                            className="btn-icon btn-ghost" title="Delete"
-                            disabled={deleteMutation.isPending}
-                            onClick={() => handleDelete(post.id)}
-                          >
-                            <Trash2 size={14} style={{ color: 'var(--color-error)' }} />
-                          </button>
+                          <div style={{ display: 'flex', gap: 6 }}>
+                            {editingId === post.id ? (
+                              <>
+                                <button className="btn btn-secondary btn-sm" onClick={saveEdit} disabled={updateMutation.isPending}>
+                                  Save
+                                </button>
+                                <button className="btn btn-secondary btn-sm" onClick={() => setEditingId(null)} disabled={updateMutation.isPending}>
+                                  Cancel
+                                </button>
+                              </>
+                            ) : (
+                              <button className="btn-icon btn-ghost" title="Edit" onClick={() => startEdit(post)}>
+                                <Pencil size={14} />
+                              </button>
+                            )}
+                            <button
+                              className="btn-icon btn-ghost" title="Delete"
+                              disabled={deleteMutation.isPending || updateMutation.isPending}
+                              onClick={() => handleDelete(post.id)}
+                            >
+                              <Trash2 size={14} style={{ color: 'var(--color-error)' }} />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}

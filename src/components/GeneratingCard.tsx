@@ -29,9 +29,6 @@ export default function GeneratingCard({ jobId, onComplete, onError }: Props) {
   useEffect(() => { onErrorRef.current = onError; }, [onError]);
 
   useEffect(() => {
-    setActiveIndex(0);
-    setElapsed(0);
-
     const phraseTimer = setInterval(() => {
       setActiveIndex((v) => Math.min(v + 1, phrases.length - 1));
     }, STEP_MS);

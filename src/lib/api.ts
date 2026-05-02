@@ -41,6 +41,7 @@ export interface Post {
   platform: 'instagram' | 'linkedin' | 'x';
   status: 'scheduled' | 'posted' | 'failed' | 'completed';
   publish_at?: string | null;
+  created_at?: string;
   text?: string;
   image_url?: string;
 }
@@ -54,6 +55,8 @@ export const api = {
   getPosts: () => req<Post[]>('/api/posts'),
   schedulePost: (body: { text: string; image_url?: string; platform: string; publish_at?: string }) =>
     req<Post>('/api/posts/schedule', { method: 'POST', body: JSON.stringify(body) }),
+  updatePost: (id: string, body: { text?: string; image_url?: string | null; publish_at?: string | null }) =>
+    req<Post>(`/api/posts/${id}`, { method: 'PATCH', body: JSON.stringify(body) }),
   deletePost: (id: string) => req<void>(`/api/posts/${id}`, { method: 'DELETE' }),
 
   // Messages
