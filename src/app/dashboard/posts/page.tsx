@@ -32,6 +32,7 @@ export default function PostsPage() {
   const [tab, setTab] = useState<'create' | 'scheduled'>('create');
   const [form, setForm] = useState({ topic: '', platform: 'instagram', tone: 'casual', language: 'en' });
   const [generated, setGenerated] = useState<{ text: string; image_url?: string } | null>(null);
+  const [previewPostId, setPreviewPostId] = useState<string | null>(null);
   const [editedText, setEditedText] = useState('');
   const [scheduleAt, setScheduleAt] = useState('');
   const [filter, setFilter] = useState({ platform: '', status: '' });
@@ -52,6 +53,7 @@ export default function PostsPage() {
     onSuccess: () => {
       toast.success(t('toast_post_scheduled'));
       qc.invalidateQueries({ queryKey: ['posts'] });
+      setPreviewPostId(null);
       setGenerated(null); setScheduleAt(''); setTab('scheduled');
     },
     onError: () => toast.error(t('toast_scheduling_failed')),
@@ -76,6 +78,7 @@ export default function PostsPage() {
   // ── Generation callbacks ───────────────────────────────────────────
   const handleGenerationComplete = useCallback(async (result: { text: string; image_url?: string }) => {
     setActiveJobId(null);
+    setPreviewPostId(null);
 
     if (result?.text || result?.image_url) {
       setGenerated(result);
@@ -86,6 +89,8 @@ export default function PostsPage() {
       if (latestWithContent) {
         setGenerated({ text: latestWithContent.text || '', image_url: latestWithContent.image_url || undefined });
         setEditedText(latestWithContent.text || '');
+        setPreviewPostId(latestWithContent.id);
+        setScheduleAt(toDateTimeLocal(latestWithContent.publish_at));
       }
     }
 
@@ -138,6 +143,7 @@ export default function PostsPage() {
         // n8n responded synchronously (no generation_jobs table)
         setGenerated(data);
         setEditedText(data.text);
+        setPreviewPostId(null);
         toast.success(t('toast_content_generated'));
       } else {
         // Async: show overlay and poll
@@ -150,6 +156,17 @@ export default function PostsPage() {
 
   function handleSchedule() {
     if (!generated) return;
+    if (previewPostId) {
+      updateMutation.mutate({
+        id: previewPostId,
+        body: {
+          text: editedText,
+          publish_at: scheduleAt || null,
+        },
+      });
+      return;
+    }
+
     scheduleMutation.mutate({
       text: editedText,
       image_url: generated.image_url,
