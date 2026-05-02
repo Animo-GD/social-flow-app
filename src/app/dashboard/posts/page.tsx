@@ -20,6 +20,7 @@ const TONES     = ['formal', 'casual', 'sales'] as const;
 function StatusBadge({ status, t }: { status: Post['status']; t: (k: TranslationKey) => string }) {
   if (status === 'posted')   return <span className="badge badge-success"><CheckCircle size={10} style={{ marginInlineEnd: 3 }} />{t('status_posted')}</span>;
   if (status === 'failed')   return <span className="badge badge-error"><XCircle size={10} style={{ marginInlineEnd: 3 }} />{t('status_failed')}</span>;
+  if (status === 'completed') return <span className="badge badge-success"><CheckCircle size={10} style={{ marginInlineEnd: 3 }} />Completed</span>;
   return <span className="badge"><Clock size={10} style={{ marginInlineEnd: 3 }} />{t('status_scheduled')}</span>;
 }
 
@@ -63,8 +64,9 @@ export default function PostsPage() {
     setActiveJobId(null);
     setGenerated(result);
     setEditedText(result.text);
+    qc.invalidateQueries({ queryKey: ['posts'] });
     toast.success(t('toast_content_generated'));
-  }, [t]);
+  }, [qc, t]);
 
   const handleGenerationError = useCallback((msg: string) => {
     setActiveJobId(null);
@@ -122,8 +124,13 @@ export default function PostsPage() {
   }
 
   function handleSchedule() {
-    if (!generated || !scheduleAt) return;
-    scheduleMutation.mutate({ text: editedText, image_url: generated.image_url, platform: form.platform, publish_at: scheduleAt });
+    if (!generated) return;
+    scheduleMutation.mutate({
+      text: editedText,
+      image_url: generated.image_url,
+      platform: form.platform,
+      publish_at: scheduleAt || undefined,
+    });
   }
 
   function handleDelete(id: string) {
@@ -276,7 +283,7 @@ export default function PostsPage() {
                     />
                     <hr className="divider" />
                     <div className="form-group">
-                      <label className="form-label" htmlFor="schedule-at">{t('label_schedule_datetime')}</label>
+                      <label className="form-label" htmlFor="schedule-at">{t('label_schedule_datetime')} (Optional)</label>
                       <input
                         id="schedule-at" type="datetime-local" className="form-input"
                         value={scheduleAt} onChange={e => setScheduleAt(e.target.value)}
@@ -292,7 +299,7 @@ export default function PostsPage() {
                         ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />
                         : <Calendar size={14} />
                       }
-                      {t('btn_schedule_post')}
+                      {scheduleAt ? t('btn_schedule_post') : 'Save Post'}
                     </button>
                   </div>
                 </div>
@@ -362,7 +369,7 @@ export default function PostsPage() {
                         </td>
                         <td><StatusBadge status={post.status} t={t} /></td>
                         <td style={{ fontSize: '0.82rem', color: 'var(--color-text-secondary)' }}>
-                          {new Date(post.publish_at).toLocaleString()}
+                          {post.publish_at ? new Date(post.publish_at).toLocaleString() : 'Not scheduled'}
                         </td>
                         <td>
                           <button

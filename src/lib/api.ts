@@ -39,8 +39,8 @@ async function req<T>(path: string, options?: RequestInit): Promise<T> {
 export interface Post {
   id: string;
   platform: 'instagram' | 'linkedin' | 'x';
-  status: 'scheduled' | 'posted' | 'failed';
-  publish_at: string;
+  status: 'scheduled' | 'posted' | 'failed' | 'completed';
+  publish_at?: string | null;
   text?: string;
   image_url?: string;
 }
@@ -52,7 +52,7 @@ export const api = {
 
   // Posts
   getPosts: () => req<Post[]>('/api/posts'),
-  schedulePost: (body: { text: string; image_url?: string; platform: string; publish_at: string }) =>
+  schedulePost: (body: { text: string; image_url?: string; platform: string; publish_at?: string }) =>
     req<Post>('/api/posts/schedule', { method: 'POST', body: JSON.stringify(body) }),
   deletePost: (id: string) => req<void>(`/api/posts/${id}`, { method: 'DELETE' }),
 

@@ -8,10 +8,12 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json();
   const { text, image_url, platform, publish_at } = body;
+  const normalizedPublishAt =
+    typeof publish_at === 'string' && publish_at.trim().length > 0 ? publish_at : null;
 
   const { data, error } = await supabase
     .from('posts')
-    .insert({ text, image_url, platform, publish_at, status: 'scheduled', user_id: session.id })
+    .insert({ text, image_url, platform, publish_at: normalizedPublishAt, status: 'scheduled', user_id: session.id })
     .select()
     .single();
 

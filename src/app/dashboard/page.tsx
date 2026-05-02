@@ -74,15 +74,15 @@ export default function DashboardPage() {
               <div className="activity-feed">
                 {posts?.slice(0, 4).map(post => (
                   <div key={post.id} className="activity-item">
-                    <div className={`activity-dot${post.status === 'posted' ? ' green' : post.status === 'failed' ? ' orange' : ''}`} />
+                    <div className={`activity-dot${post.status === 'posted' || post.status === 'completed' ? ' green' : post.status === 'failed' ? ' orange' : ''}`} />
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
                         <span className="badge badge-gray" style={{ textTransform: 'capitalize' }}>{post.platform}</span>
-                        <span className={`badge ${post.status === 'posted' ? 'badge-success' : post.status === 'failed' ? 'badge-error' : ''}`}>
+                        <span className={`badge ${post.status === 'posted' || post.status === 'completed' ? 'badge-success' : post.status === 'failed' ? 'badge-error' : ''}`}>
                           {post.status === 'scheduled' && <Clock size={10} style={{ marginInlineEnd: 3 }} />}
-                          {post.status === 'posted'    && <CheckCircle size={10} style={{ marginInlineEnd: 3 }} />}
+                          {(post.status === 'posted' || post.status === 'completed') && <CheckCircle size={10} style={{ marginInlineEnd: 3 }} />}
                           {post.status === 'failed'    && <XCircle size={10} style={{ marginInlineEnd: 3 }} />}
-                          {t(`status_${post.status}` as 'status_scheduled' | 'status_posted' | 'status_failed')}
+                          {post.status === 'completed' ? 'Completed' : t(`status_${post.status}` as 'status_scheduled' | 'status_posted' | 'status_failed')}
                         </span>
                       </div>
                       <p style={{ fontSize: '0.82rem', color: 'var(--color-text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
