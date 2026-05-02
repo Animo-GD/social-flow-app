@@ -4,8 +4,15 @@ import { getSession } from '@/lib/session';
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const action_type = body?.action_type ?? 'generate_both';
-  const payload = { ...body, action_type };
+  const rawActionType = body?.action_type;
+  const allowedActionTypes = new Set(['generate_text', 'generate_image', 'generate_both']);
+  const action_type = allowedActionTypes.has(rawActionType) ? rawActionType : 'generate_both';
+  const payload = {
+    ...body,
+    action_type,
+    action: action_type,
+    generation_type: action_type,
+  };
   const webhookUrl = process.env.N8N_CONTENT_GENERATE_URL;
 
   // Attach user_id from session
