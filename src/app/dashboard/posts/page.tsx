@@ -72,7 +72,7 @@ export default function PostsPage() {
   }, [t]);
 
   // ── Start generation ───────────────────────────────────────────────
-  async function handleGenerate() {
+  async function handleGenerate(action_type: 'generate_text' | 'generate_image' | 'generate_both') {
     if (!form.topic.trim()) { toast.error(t('toast_enter_topic')); return; }
 
     try {
@@ -98,7 +98,7 @@ export default function PostsPage() {
       const res = await fetch('/api/content/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...form, product_image_url: uploadedImageUrl || null }),
+        body: JSON.stringify({ ...form, product_image_url: uploadedImageUrl || null, action_type }),
       });
       const data = await res.json();
 
@@ -176,7 +176,7 @@ export default function PostsPage() {
                   id="topic" className="form-input"
                   value={form.topic}
                   onChange={e => setForm(f => ({ ...f, topic: e.target.value }))}
-                  onKeyDown={e => e.key === 'Enter' && handleGenerate()}
+                  onKeyDown={e => e.key === 'Enter' && handleGenerate('generate_both')}
                 />
               </div>
 
@@ -223,7 +223,7 @@ export default function PostsPage() {
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 <button
                   className="btn btn-primary"
-                  onClick={handleGenerate}
+                  onClick={() => handleGenerate('generate_text')}
                   disabled={!!activeJobId}
                 >
                   {activeJobId ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <FileText size={14} />}
@@ -231,14 +231,14 @@ export default function PostsPage() {
                 </button>
                 <button
                   className="btn btn-secondary"
-                  onClick={handleGenerate}
+                  onClick={() => handleGenerate('generate_image')}
                   disabled={!!activeJobId}
                 >
                   <ImageIcon size={14} /> {t('btn_generate_image')}
                 </button>
                 <button
                   className="btn btn-secondary"
-                  onClick={handleGenerate}
+                  onClick={() => handleGenerate('generate_both')}
                   disabled={!!activeJobId}
                 >
                   <Sparkles size={14} /> {t('btn_generate_both')}

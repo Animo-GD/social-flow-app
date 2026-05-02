@@ -4,6 +4,8 @@ import { getSession } from '@/lib/session';
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
+  const action_type = body?.action_type ?? 'generate_both';
+  const payload = { ...body, action_type };
   const webhookUrl = process.env.N8N_CONTENT_GENERATE_URL;
 
   // Attach user_id from session
@@ -31,7 +33,7 @@ export async function POST(req: NextRequest) {
       const n8nRes = await fetch(webhookUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...body, user_id }),
+        body: JSON.stringify({ ...payload, user_id }),
       });
       const data = await n8nRes.json();
       return NextResponse.json({ sync: true, ...data });
@@ -46,7 +48,7 @@ export async function POST(req: NextRequest) {
   fetch(webhookUrl, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ ...body, job_id: jobId, user_id }),
+    body: JSON.stringify({ ...payload, job_id: jobId, user_id }),
   })
     .then(async (n8nRes) => {
       if (!n8nRes.ok) {
