@@ -13,7 +13,7 @@ const EMPTY = {
   example_posts: [] as any[], keywords: [] as string[], hashtags: [] as string[], competitors: [] as string[],
 };
 
-const PLATFORMS = ['instagram', 'linkedin', 'x', 'whatsapp', 'telegram'];
+const PLATFORMS = ['instagram', 'facebook', 'linkedin', 'x', 'whatsapp', 'telegram'];
 const VOICES = ['professional', 'playful', 'inspirational', 'educational', 'conversational', 'bold'];
 const INDUSTRIES = [
   'E-commerce', 'Technology', 'Healthcare', 'Education', 'Real Estate',

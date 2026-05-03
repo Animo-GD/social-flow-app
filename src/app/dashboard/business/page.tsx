@@ -47,7 +47,7 @@ const EMPTY: BusinessProfile = {
   example_posts: [], keywords: [], hashtags: [], competitors: [],
 };
 
-const PLATFORMS = ['instagram', 'linkedin', 'x', 'whatsapp', 'telegram'];
+const PLATFORMS = ['instagram', 'facebook', 'linkedin', 'x', 'whatsapp', 'telegram'];
 const VOICES    = ['professional', 'playful', 'inspirational', 'educational', 'conversational', 'bold'];
 const INDUSTRIES = [
   'E-commerce', 'Technology', 'Healthcare', 'Education', 'Real Estate',

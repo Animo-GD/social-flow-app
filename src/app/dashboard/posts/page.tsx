@@ -14,7 +14,7 @@ import type { TranslationKey } from '@/lib/i18n';
 const GeneratingCard = dynamic(() => import('@/components/GeneratingCard'), { ssr: false });
 
 
-const PLATFORMS = ['instagram', 'linkedin', 'x'] as const;
+const PLATFORMS = ['instagram', 'facebook', 'linkedin', 'x'] as const;
 const TONES     = ['formal', 'casual', 'sales'] as const;
 
 function StatusBadge({ status, t }: { status: Post['status']; t: (k: TranslationKey) => string }) {
