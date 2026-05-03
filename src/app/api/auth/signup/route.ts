@@ -30,31 +30,56 @@ export async function POST(req: NextRequest) {
     }
 
     // Check uniqueness
-    const { data: existingEmail } = await supabase.from('users').select('id').eq('email', email).single();
-    if (existingEmail) return NextResponse.json({ error: 'Email already registered' }, { status: 409 });
+    const { data: existingEmail } = await supabase.from('users').select('id, email_verified').eq('email', email).single();
+    if (existingEmail && existingEmail.email_verified) {
+      return NextResponse.json({ error: 'Email already registered' }, { status: 409 });
+    }
 
-    const { data: existingUsername } = await supabase.from('users').select('id').eq('username', username).single();
-    if (existingUsername) return NextResponse.json({ error: 'Username already taken' }, { status: 409 });
+    const { data: existingUsername } = await supabase.from('users').select('id, email').eq('username', username).single();
+    if (existingUsername && existingUsername.email !== email) {
+      return NextResponse.json({ error: 'Username already taken' }, { status: 409 });
+    }
 
-    // Create user (unverified)
-    const { data: newUser, error: createError } = await supabase
-      .from('users')
-      .insert({
-        email,
-        username,
-        name: username,
-        password_hash: hashPassword(password),
-        phone: phone || null,
-        preferred_language,
-        email_verified: false,
-        credits: 0,
-        is_admin: false,
-      })
-      .select('id')
-      .single();
+    let userId = existingEmail?.id;
 
-    if (createError) {
-      return NextResponse.json({ error: createError.message }, { status: 500 });
+    if (existingEmail && !existingEmail.email_verified) {
+      // Update existing unverified user
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({
+          username,
+          name: username,
+          password_hash: hashPassword(password),
+          phone: phone || null,
+          preferred_language,
+        })
+        .eq('id', existingEmail.id);
+
+      if (updateError) {
+        return NextResponse.json({ error: updateError.message }, { status: 500 });
+      }
+    } else {
+      // Create new user (unverified)
+      const { data: newUser, error: createError } = await supabase
+        .from('users')
+        .insert({
+          email,
+          username,
+          name: username,
+          password_hash: hashPassword(password),
+          phone: phone || null,
+          preferred_language,
+          email_verified: false,
+          credits: 0,
+          is_admin: false,
+        })
+        .select('id')
+        .single();
+
+      if (createError) {
+        return NextResponse.json({ error: createError.message }, { status: 500 });
+      }
+      userId = newUser.id;
     }
 
     // Delete any old OTP codes for this email
@@ -69,7 +94,7 @@ export async function POST(req: NextRequest) {
     // Send email
     await sendVerificationEmail(email, code, preferred_language as 'en' | 'ar');
 
-    return NextResponse.json({ ok: true, userId: newUser.id });
+    return NextResponse.json({ ok: true, userId });
   } catch (err) {
     console.error('Signup error:', err);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

@@ -1,15 +1,18 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Zap, Loader2, Eye, EyeOff } from 'lucide-react';
 import { useLang } from '@/lib/LanguageContext';
 import Link from 'next/link';
 
 type Step = 'form' | 'verify';
 
-export default function SignupPage() {
+import { Suspense } from 'react';
+
+function SignupContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { t, lang } = useLang();
   const [step, setStep] = useState<Step>('form');
   const [loading, setLoading] = useState(false);
@@ -32,6 +35,22 @@ export default function SignupPage() {
   function set(key: string, val: string) {
     setForm(f => ({ ...f, [key]: val }));
   }
+
+  useEffect(() => {
+    const emailParam = searchParams.get('email');
+    const verifyParam = searchParams.get('verify');
+    if (emailParam && verifyParam === '1') {
+      setForm(f => ({ ...f, email: emailParam }));
+      setStep('verify');
+      
+      // Auto trigger resend code
+      fetch('/api/auth/resend-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: emailParam }),
+      }).catch(console.error);
+    }
+  }, [searchParams]);
 
   async function handleSignup() {
     setLoading(true);
@@ -273,5 +292,13 @@ export default function SignupPage() {
       </div>
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
+  );
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense fallback={<div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Loading...</div>}>
+      <SignupContent />
+    </Suspense>
   );
 }

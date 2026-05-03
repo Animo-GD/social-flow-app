@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
     // Look up user
     const { data: userRow } = await supabase
       .from('users')
-      .select('id, name, email, password_hash, is_admin')
+      .select('id, name, email, password_hash, is_admin, email_verified')
       .eq('email', email)
       .single();
 
@@ -34,6 +34,10 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ ok: true });
       }
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
+    }
+
+    if (!userRow.email_verified && !isDemo) {
+      return NextResponse.json({ error: 'unverified', message: 'Please verify your email to log in.' }, { status: 403 });
     }
 
     if (!isDemo) {

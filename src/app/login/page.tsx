@@ -30,13 +30,21 @@ export default function LoginPage() {
         router.refresh();
       } else {
         const data = await res.json().catch(() => ({}));
-        setError(data.error || t('login_invalid'));
+        if (data.error === 'unverified') {
+          setError(t('login_unverified') || 'Please verify your email first.');
+        } else {
+          setError(data.error || t('login_invalid'));
+        }
       }
     } catch {
       setError(t('login_error'));
     }
 
     setLoading(false);
+  }
+
+  async function handleResendAndVerify() {
+    router.push(`/signup?email=${encodeURIComponent(email)}&verify=1`);
   }
 
   return (
