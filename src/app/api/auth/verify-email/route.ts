@@ -28,15 +28,40 @@ export async function POST(req: NextRequest) {
     // Mark OTP as used
     await supabaseAdmin.from('email_verifications').update({ used: true }).eq('id', otp.id);
 
-    // Mark user as verified
+    // Fetch current user state to check credits
+    const { data: currentUser } = await supabaseAdmin
+      .from('users')
+      .select('id, credits')
+      .eq('email', email.toLowerCase())
+      .single();
+
+    if (!currentUser) return NextResponse.json({ error: 'User not found' }, { status: 404 });
+
+    const isFirstTime = currentUser.credits === 0;
+    const creditsToAdd = isFirstTime ? 2000 : 0;
+
+    // Mark user as verified and add credits
     const { data: user } = await supabaseAdmin
       .from('users')
-      .update({ email_verified: true })
-      .eq('email', email.toLowerCase())
+      .update({ 
+        email_verified: true,
+        credits: currentUser.credits + creditsToAdd
+      })
+      .eq('id', currentUser.id)
       .select('id, name, email, is_admin')
       .single();
 
-    if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    if (!user) return NextResponse.json({ error: 'Failed to update user' }, { status: 500 });
+
+    // Record the transaction if credits were added
+    if (creditsToAdd > 0) {
+      await supabaseAdmin.from('credit_transactions').insert({
+        user_id: user.id,
+        amount: creditsToAdd,
+        type: 'bonus',
+        description: 'Welcome Bonus: 2000 Free Credits!',
+      });
+    }
 
     // Create session
     await createSession({
@@ -46,7 +71,14 @@ export async function POST(req: NextRequest) {
       isAdmin: user.is_admin ?? false
     });
 
-    return NextResponse.json({ ok: true });
+    const res = NextResponse.json({ ok: true });
+
+    // Set a cookie so the frontend knows to show the welcome popup
+    if (creditsToAdd > 0) {
+      res.cookies.set('welcome_bonus', '1', { path: '/', maxAge: 60 }); // 1 minute is enough to be read once
+    }
+
+    return res;
   } catch (err) {
     console.error('Verify error:', err);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

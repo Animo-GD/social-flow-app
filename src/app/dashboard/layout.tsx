@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import Sidebar from '@/components/Sidebar';
 import { Menu } from 'lucide-react';
+import WelcomePopup from '@/components/WelcomePopup';
+import BusinessOnboarding from '@/components/BusinessOnboarding';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -25,6 +27,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
         {children}
       </main>
+      <WelcomePopup />
+      <BusinessOnboarding />
     </div>
   );
 }
