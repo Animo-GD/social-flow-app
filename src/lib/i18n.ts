@@ -8,9 +8,9 @@ export const translations = {
     nav_messages: 'Messages',
     nav_analytics: 'Analytics',
     nav_trends: 'Trends',
-    nav_business: 'Business Profile',
+    nav_profile: 'My Profile',
     nav_admin: 'Admin',
-    nav_credits: 'Credits',
+    nav_credits_short: 'credits',
     nav_settings: 'Settings',
     nav_signout: 'Sign out',
 
@@ -155,9 +155,9 @@ export const translations = {
     nav_messages: 'الرسائل',
     nav_analytics: 'التحليلات',
     nav_trends: 'التريند',
-    nav_business: 'الملف التجاري',
+    nav_profile: 'ملفي الشخصي',
     nav_admin: 'لوحة المطور',
-    nav_credits: 'الكريدت',
+    nav_credits_short: 'كريدت',
     nav_settings: 'الإعدادات',
     nav_signout: 'تسجيل الخروج',
 

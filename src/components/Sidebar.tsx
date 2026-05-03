@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard, FileText, MessageCircle, BarChart2,
-  Settings, TrendingUp, LogOut, Building2, Shield, X, CreditCard,
+  Settings, TrendingUp, LogOut, Building2, Shield, X, CreditCard, UserCircle,
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useLang } from '@/lib/LanguageContext';
@@ -17,8 +17,7 @@ const NAV: { href: string; key: TranslationKey; icon: React.ComponentType<{ size
   { href: '/dashboard/messages',   key: 'nav_messages',   icon: MessageCircle },
   { href: '/dashboard/analytics',  key: 'nav_analytics',  icon: BarChart2 },
   { href: '/dashboard/trends',     key: 'nav_trends',     icon: TrendingUp },
-  { href: '/dashboard/business',   key: 'nav_business',   icon: Building2 },
-  { href: '/dashboard/credits',    key: 'nav_credits',    icon: CreditCard },
+  { href: '/dashboard/profile',    key: 'nav_profile',    icon: UserCircle },
   { href: '/dashboard/settings',   key: 'nav_settings',   icon: Settings },
 ];
 
@@ -32,6 +31,12 @@ export default function Sidebar({ mobileOpen, onClose }: { mobileOpen?: boolean;
     staleTime: 60_000,
   });
   const isAdmin = authData?.user?.isAdmin === true;
+
+  const { data: userProfile } = useQuery({
+    queryKey: ['user-profile'],
+    queryFn: () => fetch('/api/user/profile').then(r => r.json()),
+    staleTime: 60_000,
+  });
 
   return (
     <aside className={`sidebar${mobileOpen ? ' mobile-open' : ''}`}>
@@ -87,6 +92,36 @@ export default function Sidebar({ mobileOpen, onClose }: { mobileOpen?: boolean;
             عربي
           </button>
         </div>
+      </div>
+
+      {/* User Info Card */}
+      <div style={{ padding: '8px 8px 0', borderTop: '1px solid var(--color-border)', marginTop: 8 }}>
+        <Link
+          href="/dashboard/profile"
+          style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', borderRadius: 'var(--radius-sm)', textDecoration: 'none', color: 'var(--color-text-primary)', transition: 'background 0.12s' }}
+          onClick={onClose}
+        >
+          {userProfile?.avatar_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={userProfile.avatar_url}
+              alt="avatar"
+              style={{ width: 28, height: 28, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }}
+            />
+          ) : (
+            <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--color-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 700, color: '#fff', flexShrink: 0 }}>
+              {(userProfile?.username ?? userProfile?.email ?? '?').slice(0, 2).toUpperCase()}
+            </div>
+          )}
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: '0.88rem', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {userProfile?.username ?? userProfile?.name ?? 'User'}
+            </div>
+            <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {userProfile?.credits ?? 0} {t('nav_credits_short') ?? 'credits'}
+            </div>
+          </div>
+        </Link>
       </div>
 
       {/* Sign out */}

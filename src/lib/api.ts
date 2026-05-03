@@ -80,6 +80,11 @@ export const api = {
   updateAdminUser: (id: string, body: { is_admin?: boolean; credits?: number }) =>
     req<AdminUser>(`/api/admin/users/${id}`, { method: 'PATCH', body: JSON.stringify(body) }),
   deleteAdminUser: (id: string) => req<{ ok: true }>(`/api/admin/users/${id}`, { method: 'DELETE' }),
+
+  // User Profile
+  getUserProfile: () => req<UserProfile>('/api/user/profile'),
+  updateUserProfile: (body: Partial<UserProfile> & { current_password?: string; new_password?: string }) =>
+    req<UserProfile>('/api/user/profile', { method: 'PATCH', body: JSON.stringify(body) }),
 };
 
 export interface Conversation {
@@ -117,5 +122,18 @@ export interface AdminUser {
   email: string;
   is_admin?: boolean;
   credits?: number;
+  created_at?: string;
+}
+
+export interface UserProfile {
+  id: string;
+  name: string;
+  username?: string;
+  email: string;
+  phone?: string;
+  preferred_language?: string;
+  avatar_url?: string;
+  credits: number;
+  is_admin?: boolean;
   created_at?: string;
 }
