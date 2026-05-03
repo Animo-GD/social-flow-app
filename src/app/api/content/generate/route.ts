@@ -26,6 +26,40 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  const CREDITS_PER_GENERATION = 1;
+
+  if (session) {
+    // Check balance
+    const { data: userRow } = await supabase
+      .from('users')
+      .select('credits')
+      .eq('id', session.id)
+      .single();
+
+    // Demo user always has credits; real users must have enough
+    if (session.id !== 'demo' && (userRow?.credits ?? 0) < CREDITS_PER_GENERATION) {
+      return NextResponse.json(
+        { error: 'Insufficient credits. Please buy more credits to continue.' },
+        { status: 402 }
+      );
+    }
+
+    // Deduct credits
+    if (session.id !== 'demo' && userRow) {
+      await supabase
+        .from('users')
+        .update({ credits: userRow.credits - CREDITS_PER_GENERATION })
+        .eq('id', session.id);
+
+      await supabase.from('credit_transactions').insert({
+        user_id: session.id,
+        amount: -CREDITS_PER_GENERATION,
+        type: 'spend',
+        description: `Generated content for ${body.platform || 'all platforms'}`,
+      });
+    }
+  }
+
   // 1. Create a pending job in Supabase so the frontend can poll it
   const { data: job, error: jobError } = await supabase
     .from('generation_jobs')

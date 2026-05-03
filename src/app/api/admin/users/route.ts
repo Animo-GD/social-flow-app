@@ -13,7 +13,7 @@ export async function GET() {
 
   const { data, error } = await supabase
     .from('users')
-    .select('id, name, email, created_at')
+    .select('id, name, email, is_admin, credits, created_at')
     .order('created_at', { ascending: false });
 
   if (error) {

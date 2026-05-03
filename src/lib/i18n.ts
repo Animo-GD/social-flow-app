@@ -10,6 +10,7 @@ export const translations = {
     nav_trends: 'Trends',
     nav_business: 'Business Profile',
     nav_admin: 'Admin',
+    nav_credits: 'Credits',
     nav_settings: 'Settings',
     nav_signout: 'Sign out',
 
@@ -125,6 +126,8 @@ export const translations = {
     login_invalid: 'Invalid email or password.',
     login_error: 'Connection error. Please try again.',
     login_demo: 'Demo credentials:',
+    login_no_account: "Don't have an account? ",
+    login_signup_link: 'Sign up',
 
     // Language switcher
     language: 'Language',
@@ -153,6 +156,7 @@ export const translations = {
     nav_trends: 'التريند',
     nav_business: 'الملف التجاري',
     nav_admin: 'لوحة المطور',
+    nav_credits: 'الكريدت',
     nav_settings: 'الإعدادات',
     nav_signout: 'تسجيل الخروج',
 
@@ -268,6 +272,8 @@ export const translations = {
     login_invalid: 'بريد إلكتروني أو كلمة مرور غير صحيحة.',
     login_error: 'خطأ في الاتصال. حاول مجددًا.',
     login_demo: 'بيانات تجريبية:',
+    login_no_account: 'ليس لديك حساب؟ ',
+    login_signup_link: 'إنشاء حساب',
 
     // Language switcher
     language: 'اللغة',

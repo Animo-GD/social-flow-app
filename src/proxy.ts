@@ -5,7 +5,7 @@ const SECRET = new TextEncoder().encode(
   process.env.NEXTAUTH_SECRET ?? 'sf-dev-secret-change-in-production'
 );
 
-const PUBLIC_PREFIXES = ['/login', '/api/auth', '/api/health', '/_next', '/favicon'];
+const PUBLIC_PREFIXES = ['/login', '/signup', '/api/auth', '/api/health', '/api/webhooks', '/_next', '/favicon'];
 
 export default async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;

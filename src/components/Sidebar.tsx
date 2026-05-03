@@ -5,8 +5,9 @@ import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard, FileText, MessageCircle, BarChart2,
-  Settings, TrendingUp, LogOut, Building2, Shield, X,
+  Settings, TrendingUp, LogOut, Building2, Shield, X, CreditCard,
 } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 import { useLang } from '@/lib/LanguageContext';
 import type { TranslationKey } from '@/lib/i18n';
 
@@ -17,13 +18,20 @@ const NAV: { href: string; key: TranslationKey; icon: React.ComponentType<{ size
   { href: '/dashboard/analytics',  key: 'nav_analytics',  icon: BarChart2 },
   { href: '/dashboard/trends',     key: 'nav_trends',     icon: TrendingUp },
   { href: '/dashboard/business',   key: 'nav_business',   icon: Building2 },
-  { href: '/dashboard/admin',      key: 'nav_admin',      icon: Shield },
+  { href: '/dashboard/credits',    key: 'nav_credits',    icon: CreditCard },
   { href: '/dashboard/settings',   key: 'nav_settings',   icon: Settings },
 ];
 
 export default function Sidebar({ mobileOpen, onClose }: { mobileOpen?: boolean; onClose?: () => void }) {
   const path = usePathname();
   const { lang, setLang, t } = useLang();
+
+  const { data: authData } = useQuery({
+    queryKey: ['session'],
+    queryFn: () => fetch('/api/auth/login').then(r => r.json()),
+    staleTime: 60_000,
+  });
+  const isAdmin = authData?.user?.isAdmin === true;
 
   return (
     <aside className={`sidebar${mobileOpen ? ' mobile-open' : ''}`}>
@@ -49,6 +57,12 @@ export default function Sidebar({ mobileOpen, onClose }: { mobileOpen?: boolean;
             </Link>
           );
         })}
+        {isAdmin && (
+          <Link href="/dashboard/admin" className={`sidebar-link${path === '/dashboard/admin' ? ' active' : ''}`} onClick={onClose}>
+            <Shield size={16} />
+            {t('nav_admin')}
+          </Link>
+        )}
       </nav>
 
       {/* Language switcher */}

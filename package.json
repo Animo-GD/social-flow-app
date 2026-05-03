@@ -23,7 +23,8 @@
     "react-dom": "19.2.4",
     "react-hot-toast": "^2.6.0",
     "recharts": "^3.8.1",
-    "remotion": "^4.0.455"
+    "remotion": "^4.0.455",
+    "resend": "^6.12.2"
   },
   "devDependencies": {
     "@types/node": "^20",

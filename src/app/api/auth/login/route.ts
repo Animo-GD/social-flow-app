@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
     // Look up user
     const { data: userRow } = await supabase
       .from('users')
-      .select('id, name, email, password_hash')
+      .select('id, name, email, password_hash, is_admin')
       .eq('email', email)
       .single();
 
@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
 
     if (!userRow) {
       if (isDemo) {
-        await createSession({ id: 'demo', name: 'Admin', email });
+        await createSession({ id: 'demo', name: 'Admin', email, isAdmin: true });
         return NextResponse.json({ ok: true });
       }
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
@@ -61,6 +61,7 @@ export async function POST(req: NextRequest) {
       id: userRow.id,
       name: userRow.name ?? 'User',
       email: userRow.email,
+      isAdmin: userRow.is_admin ?? false,
     });
 
     return NextResponse.json({ ok: true });

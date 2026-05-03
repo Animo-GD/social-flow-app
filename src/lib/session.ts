@@ -17,6 +17,7 @@ export interface SessionUser {
   id: string;
   name: string;
   email: string;
+  isAdmin?: boolean;
 }
 
 // ── Sign & set cookie ─────────────────────────────────────────────

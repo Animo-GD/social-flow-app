@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Zap, Loader2 } from 'lucide-react';
 import { useLang } from '@/lib/LanguageContext';
+import Link from 'next/link';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -98,6 +99,12 @@ export default function LoginPage() {
               {loading && <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} />}
               {loading ? t('btn_signing_in') : t('btn_signin')}
             </button>
+            <p style={{ textAlign: 'center', marginTop: 20, fontSize: '0.88rem', color: 'var(--color-text-secondary)' }}>
+              {t('login_no_account') || "Don't have an account? "}
+              <Link href="/signup" style={{ color: 'var(--color-accent)', fontWeight: 600 }}>
+                {t('login_signup_link') || 'Sign up'}
+              </Link>
+            </p>
           </div>
         </div>
       </div>

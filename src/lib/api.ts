@@ -77,6 +77,8 @@ export const api = {
   getAdminUsers: () => req<AdminUser[]>('/api/admin/users'),
   createAdminUser: (body: { email: string; name?: string; password: string }) =>
     req<AdminUser>('/api/admin/users', { method: 'POST', body: JSON.stringify(body) }),
+  updateAdminUser: (id: string, body: { is_admin?: boolean; credits?: number }) =>
+    req<AdminUser>(`/api/admin/users/${id}`, { method: 'PATCH', body: JSON.stringify(body) }),
   deleteAdminUser: (id: string) => req<{ ok: true }>(`/api/admin/users/${id}`, { method: 'DELETE' }),
 };
 
@@ -113,5 +115,7 @@ export interface AdminUser {
   id: string;
   name: string;
   email: string;
+  is_admin?: boolean;
+  credits?: number;
   created_at?: string;
 }

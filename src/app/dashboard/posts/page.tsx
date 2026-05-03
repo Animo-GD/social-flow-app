@@ -135,6 +135,10 @@ export default function PostsPage() {
       });
       const data = await res.json();
 
+      if (res.status === 402) {
+        toast.error(data.error || 'Not enough credits! Please buy more credits.');
+        return;
+      }
       if (!res.ok) {
         toast.error(data.error || t('toast_generation_failed'));
         return;
