@@ -1,7 +1,3 @@
-import { Resend } from 'resend';
-
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 export async function sendVerificationEmail(email: string, code: string, lang: 'en' | 'ar' = 'en') {
   const subject = lang === 'ar' ? 'رمز التحقق من البريد الإلكتروني - SocialFlow' : 'Verify your email - SocialFlow';
   const body = lang === 'ar'
@@ -18,10 +14,26 @@ export async function sendVerificationEmail(email: string, code: string, lang: '
         <p style="color:#888">This code expires in 10 minutes. Do not share it.</p>
       </div>`;
 
-  await resend.emails.send({
-    from: process.env.EMAIL_FROM ?? 'noreply@socialflow.ai',
-    to: email,
-    subject,
-    html: body,
+  const webhookUrl = process.env.N8N_EMAIL_WEBHOOK_URL;
+  
+  if (!webhookUrl) {
+    console.warn('N8N_EMAIL_WEBHOOK_URL is not set. Simulating email send:', { email, code });
+    return;
+  }
+
+  const res = await fetch(webhookUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      to: email,
+      subject,
+      html: body,
+      code,
+      lang,
+    }),
   });
+
+  if (!res.ok) {
+    throw new Error(`Failed to send email via n8n: ${res.statusText}`);
+  }
 }
