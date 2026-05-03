@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabase-admin';
 import { createSession } from '@/lib/session';
 
 export async function POST(req: NextRequest) {
@@ -11,7 +12,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Find valid OTP
-    const { data: otp } = await supabase
+    const { data: otp } = await supabaseAdmin
       .from('email_verifications')
       .select('*')
       .eq('email', email.toLowerCase())
@@ -25,10 +26,10 @@ export async function POST(req: NextRequest) {
     }
 
     // Mark OTP as used
-    await supabase.from('email_verifications').update({ used: true }).eq('id', otp.id);
+    await supabaseAdmin.from('email_verifications').update({ used: true }).eq('id', otp.id);
 
     // Mark user as verified
-    const { data: user } = await supabase
+    const { data: user } = await supabaseAdmin
       .from('users')
       .update({ email_verified: true })
       .eq('email', email.toLowerCase())

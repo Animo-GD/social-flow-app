@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabase-admin';
 import { hashPassword } from '@/lib/password';
 import { sendVerificationEmail } from '@/lib/email';
 
@@ -57,13 +58,13 @@ export async function POST(req: NextRequest) {
     }
 
     // Delete any old OTP codes for this email
-    await supabase.from('email_verifications').delete().eq('email', email);
+    await supabaseAdmin.from('email_verifications').delete().eq('email', email);
 
     // Create OTP
     const code = generateCode();
     const expires_at = new Date(Date.now() + 10 * 60 * 1000).toISOString(); // 10 min
 
-    await supabase.from('email_verifications').insert({ email, code, expires_at });
+    await supabaseAdmin.from('email_verifications').insert({ email, code, expires_at });
 
     // Send email
     await sendVerificationEmail(email, code, preferred_language as 'en' | 'ar');

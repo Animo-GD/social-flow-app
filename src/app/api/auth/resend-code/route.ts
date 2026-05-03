@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabase-admin';
 import { sendVerificationEmail } from '@/lib/email';
 
 function generateCode(): string {
@@ -20,7 +21,7 @@ export async function POST(req: NextRequest) {
   if (user.email_verified) return NextResponse.json({ error: 'Already verified' }, { status: 400 });
 
   // Rate-limit: only allow resend once per minute
-  const { data: recent } = await supabase
+  const { data: recent } = await supabaseAdmin
     .from('email_verifications')
     .select('created_at')
     .eq('email', email.toLowerCase())
@@ -32,11 +33,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Please wait 1 minute before requesting another code' }, { status: 429 });
   }
 
-  await supabase.from('email_verifications').delete().eq('email', email.toLowerCase());
+  await supabaseAdmin.from('email_verifications').delete().eq('email', email.toLowerCase());
 
   const code = generateCode();
   const expires_at = new Date(Date.now() + 10 * 60 * 1000).toISOString();
-  await supabase.from('email_verifications').insert({ email: email.toLowerCase(), code, expires_at });
+  await supabaseAdmin.from('email_verifications').insert({ email: email.toLowerCase(), code, expires_at });
   await sendVerificationEmail(email, code, user.preferred_language as 'en' | 'ar' ?? 'en');
 
   return NextResponse.json({ ok: true });
