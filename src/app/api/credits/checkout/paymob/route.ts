@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createPaymobPaymentKey } from '@/lib/paymob';
 import { supabase } from '@/lib/supabase';
