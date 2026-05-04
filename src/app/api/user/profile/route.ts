@@ -31,8 +31,10 @@ export async function PATCH(req: NextRequest) {
   // Username
   if (typeof body.username === 'string') {
     const username = body.username.trim();
-    if (!/^[a-zA-Z0-9_]{3,30}$/.test(username)) {
-      return NextResponse.json({ error: 'Username must be 3-30 characters, letters/numbers/underscore only' }, { status: 400 });
+    if (!/^[a-zA-Z0-9_\u0600-\u06FF]{3,30}$/.test(username)) {
+      return NextResponse.json({ 
+        error: 'Username must be 3-30 characters, letters (Arabic/English), numbers, or underscore only' 
+      }, { status: 400 });
     }
     // Check uniqueness (exclude self)
     const { data: existing } = await supabase

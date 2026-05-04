@@ -25,8 +25,12 @@ export async function POST(req: NextRequest) {
     if (password.length < 8) {
       return NextResponse.json({ error: 'Password must be at least 8 characters' }, { status: 400 });
     }
-    if (!/^[a-zA-Z0-9_]{3,30}$/.test(username)) {
-      return NextResponse.json({ error: 'Username must be 3-30 characters, letters/numbers/underscore only' }, { status: 400 });
+    if (!/^[a-zA-Z0-9_\u0600-\u06FF]{3,30}$/.test(username)) {
+      return NextResponse.json({ 
+        error: preferred_language === 'ar' 
+          ? 'يجب أن يكون اسم المستخدم بين 3-30 حرفاً، ويحتوي على حروف (عربية/إنجليزية) أو أرقام أو شرطة سفلية فقط'
+          : 'Username must be 3-30 characters, letters (Arabic/English), numbers, or underscore only' 
+      }, { status: 400 });
     }
 
     // Check uniqueness

@@ -151,7 +151,7 @@ function SignupContent() {
                   required
                 />
                 <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: 4 }}>
-                  {isAr ? 'حروف وأرقام وشرطة سفلية فقط (3-30 حرف)' : 'Letters, numbers, underscore only (3-30 chars)'}
+                  {isAr ? 'حروف (عربية/إنجليزية)، أرقام، وشرطة سفلية (3-30 حرف)' : 'Letters (Arabic/Eng), numbers, underscore (3-30 chars)'}
                 </p>
               </div>
 
@@ -187,6 +187,52 @@ function SignupContent() {
                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
+                
+                {/* Password Strength Meter */}
+                {form.password && (
+                  <div style={{ marginTop: 8 }}>
+                    <div style={{ height: 4, width: '100%', background: 'var(--color-border)', borderRadius: 2, overflow: 'hidden' }}>
+                      <div style={{ 
+                        height: '100%', 
+                        width: `${Math.min((() => {
+                          let s = 0;
+                          if (form.password.length >= 8) s += 25;
+                          if (/[A-Z]/.test(form.password)) s += 25;
+                          if (/[0-9]/.test(form.password)) s += 25;
+                          if (/[^A-Za-z0-9]/.test(form.password)) s += 25;
+                          return s;
+                        })(), 100)}%`,
+                        background: (() => {
+                          const p = form.password;
+                          let s = 0;
+                          if (p.length >= 8) s++;
+                          if (/[A-Z]/.test(p)) s++;
+                          if (/[0-9]/.test(p)) s++;
+                          if (/[^A-Za-z0-9]/.test(p)) s++;
+                          if (s <= 1) return '#ef4444'; // Red
+                          if (s === 2) return '#f59e0b'; // Orange
+                          if (s === 3) return '#fbbf24'; // Yellow
+                          return '#10b981'; // Green
+                        })(),
+                        transition: 'all 0.3s'
+                      }} />
+                    </div>
+                    <p style={{ fontSize: '0.75rem', marginTop: 4, color: 'var(--color-text-muted)' }}>
+                      {(() => {
+                        const p = form.password;
+                        let s = 0;
+                        if (p.length >= 8) s++;
+                        if (/[A-Z]/.test(p)) s++;
+                        if (/[0-9]/.test(p)) s++;
+                        if (/[^A-Za-z0-9]/.test(p)) s++;
+                        if (s <= 1) return isAr ? 'ضعيفة جداً' : 'Very weak';
+                        if (s === 2) return isAr ? 'ضعيفة' : 'Weak';
+                        if (s === 3) return isAr ? 'متوسطة' : 'Fair';
+                        return isAr ? 'قوية جداً' : 'Strong';
+                      })()}
+                    </p>
+                  </div>
+                )}
               </div>
 
               <div className="form-group">
