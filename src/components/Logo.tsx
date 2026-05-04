@@ -7,7 +7,7 @@ export default function Logo({ width = 180, height, className = '' }: { width?: 
     <svg 
       width={width} 
       height={height}
-      viewBox="0 0 220 50" 
+      viewBox="0 0 260 50" 
       fill="none" 
       xmlns="http://www.w3.org/2000/svg"
       className={className}
@@ -20,29 +20,27 @@ export default function Logo({ width = 180, height, className = '' }: { width?: 
         </linearGradient>
       </defs>
       
-      {/* Icon: Abstract 'S' with Lightning Bolt */}
+      {/* Icon Part */}
       <rect x="0" y="5" width="40" height="40" rx="10" fill="url(#logo-grad)" />
       <path 
         d="M20 12L14 25H20L14 38L26 23H20L26 12H20Z" 
         fill="white"
       />
 
-      {/* Text: SocialFlow */}
+      {/* Text Part */}
       <text 
-        x="52" 
-        y="34" 
+        x="55" 
+        y="35" 
         fill="#1e293b" 
-        style={{ 
-          fontSize: '26px', 
-          fontWeight: 800, 
-          fontFamily: "'Inter', system-ui, sans-serif", 
-          letterSpacing: '-0.03em' 
-        }}
+        fontFamily="Inter, system-ui, -apple-system, sans-serif"
+        fontSize="28"
+        fontWeight="800"
+        style={{ letterSpacing: '-0.02em' }}
       >
-        Social
-        <tspan fill="#4f46e5">Flow</tspan>
+        Social<tspan fill="#4f46e5">Flow</tspan>
       </text>
     </svg>
   );
 }
+
 
