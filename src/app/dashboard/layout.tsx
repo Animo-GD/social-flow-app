@@ -43,7 +43,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
          2. Welcome Popup (only shows AFTER onboarding is done or if not needed)
       */}
       <BusinessOnboarding />
-      {!showOnboarding && <WelcomePopup />}
+      {!isLoading && !showOnboarding && <WelcomePopup />}
     </div>
   );
 }
