@@ -4,7 +4,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api, Post } from '@/lib/api';
 import dynamic from 'next/dynamic';
-import { Loader2, Sparkles, Calendar, Trash2, Clock, CheckCircle, XCircle, Image as ImageIcon, FileText, Pencil, Video, Globe, Save, Lightbulb } from 'lucide-react';
+import { Loader2, Sparkles, Calendar, Trash2, Clock, CheckCircle, XCircle, Image as ImageIcon, FileText, Pencil, Video, Save, Lightbulb, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Toaster } from 'react-hot-toast';
 import { useLang } from '@/lib/LanguageContext';
@@ -41,6 +41,197 @@ function PlatformIcon({ platform }: { platform: string }) {
   );
 }
 
+// ─── Edit Modal ───────────────────────────────────────────────────────────────
+interface EditModalProps {
+  post: Post | null;
+  onClose: () => void;
+  onSave: () => void;
+  editText: string;
+  setEditText: (v: string) => void;
+  editPublishAt: string;
+  setEditPublishAt: (v: string) => void;
+  editProductNotes: string;
+  setEditProductNotes: (v: string) => void;
+  isPending: boolean;
+}
+
+function EditModal({ post, onClose, onSave, editText, setEditText, editPublishAt, setEditPublishAt, editProductNotes, setEditProductNotes, isPending }: EditModalProps) {
+  const overlayRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [onClose]);
+
+  if (!post) return null;
+
+  const ps = PLATFORM_STYLES[post.platform] ?? { bg: 'var(--color-bg-warm)', color: 'var(--color-text-secondary)', label: post.platform.slice(0,2).toUpperCase() };
+
+  return (
+    <div
+      ref={overlayRef}
+      onClick={(e) => { if (e.target === overlayRef.current) onClose(); }}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 1000,
+        background: 'rgba(0,0,0,0.55)',
+        backdropFilter: 'blur(6px)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: '24px',
+        animation: 'fadeIn 0.18s ease',
+      }}
+    >
+      <div style={{
+        background: 'var(--color-bg-elevated, var(--color-card))',
+        borderRadius: 20,
+        width: '100%',
+        maxWidth: 600,
+        maxHeight: '90vh',
+        overflow: 'auto',
+        boxShadow: '0 32px 80px rgba(0,0,0,0.35)',
+        animation: 'slideUp 0.22s cubic-bezier(0.16,1,0.3,1)',
+      }}>
+        {/* Header */}
+        <div style={{ padding: '20px 24px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 32, height: 32, borderRadius: 10, background: ps.bg, color: ps.color, fontSize: '0.72rem', fontWeight: 700 }}>
+              {ps.label}
+            </span>
+            <div>
+              <p style={{ margin: 0, fontWeight: 600, fontSize: '1rem' }}>Edit Post</p>
+              <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
+                {post.publish_at ? new Date(post.publish_at).toLocaleString() : 'Draft'}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 6, borderRadius: 8, color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        {/* Image if any */}
+        {post.image_url && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={post.image_url} alt="Post" style={{ width: '100%', maxHeight: 200, objectFit: 'cover', marginTop: 16 }} />
+        )}
+
+        {/* Body */}
+        <div style={{ padding: '20px 24px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {/* Enhanced textarea */}
+          <div style={{ position: 'relative' }}>
+            <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text-secondary)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Post Content</label>
+            <textarea
+              value={editText}
+              onChange={e => setEditText(e.target.value)}
+              rows={7}
+              autoFocus
+              style={{
+                width: '100%',
+                padding: '14px 16px',
+                borderRadius: 12,
+                border: '2px solid var(--color-border)',
+                background: 'var(--color-bg)',
+                color: 'var(--color-text-primary)',
+                fontSize: '0.97rem',
+                lineHeight: 1.65,
+                resize: 'vertical',
+                fontFamily: 'inherit',
+                outline: 'none',
+                transition: 'border-color 0.2s ease',
+                boxSizing: 'border-box',
+              }}
+              onFocus={e => { e.target.style.borderColor = 'var(--color-primary)'; }}
+              onBlur={e => { e.target.style.borderColor = 'var(--color-border)'; }}
+            />
+            <span style={{ position: 'absolute', bottom: 10, right: 12, fontSize: '0.72rem', color: 'var(--color-text-muted)' }}>
+              {editText.length} chars
+            </span>
+          </div>
+
+          {/* Product Notes */}
+          <div>
+            <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text-secondary)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              <Lightbulb size={12} style={{ marginInlineEnd: 4, verticalAlign: 'middle' }} />
+              Product Notes / Offer
+            </label>
+            <input
+              value={editProductNotes}
+              onChange={e => setEditProductNotes(e.target.value)}
+              placeholder="e.g. 20% off, free delivery..."
+              style={{
+                width: '100%',
+                padding: '12px 16px',
+                borderRadius: 10,
+                border: '2px solid var(--color-border)',
+                background: 'var(--color-bg)',
+                color: 'var(--color-text-primary)',
+                fontSize: '0.94rem',
+                fontFamily: 'inherit',
+                outline: 'none',
+                transition: 'border-color 0.2s ease',
+                boxSizing: 'border-box',
+              }}
+              onFocus={e => { e.target.style.borderColor = 'var(--color-primary)'; }}
+              onBlur={e => { e.target.style.borderColor = 'var(--color-border)'; }}
+            />
+          </div>
+
+          {/* Schedule */}
+          <div>
+            <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text-secondary)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              <Calendar size={12} style={{ marginInlineEnd: 4, verticalAlign: 'middle' }} />
+              Schedule Date &amp; Time
+            </label>
+            <input
+              type="datetime-local"
+              value={editPublishAt}
+              onChange={e => setEditPublishAt(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '12px 16px',
+                borderRadius: 10,
+                border: '2px solid var(--color-border)',
+                background: 'var(--color-bg)',
+                color: 'var(--color-text-primary)',
+                fontSize: '0.94rem',
+                fontFamily: 'inherit',
+                outline: 'none',
+                transition: 'border-color 0.2s ease',
+                boxSizing: 'border-box',
+              }}
+              onFocus={e => { e.target.style.borderColor = 'var(--color-primary)'; }}
+              onBlur={e => { e.target.style.borderColor = 'var(--color-border)'; }}
+            />
+          </div>
+
+          {/* Actions */}
+          <div style={{ display: 'flex', gap: 10, paddingTop: 4 }}>
+            <button
+              onClick={onClose}
+              className="btn btn-secondary"
+              style={{ flex: 1, justifyContent: 'center' }}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={onSave}
+              disabled={isPending}
+              className="btn btn-primary"
+              style={{ flex: 2, justifyContent: 'center' }}
+            >
+              {isPending ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Save size={14} />}
+              Save Changes
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function PostsPage() {
   const { t, lang } = useLang();
   const isAr = lang === 'ar';
@@ -55,7 +246,7 @@ export default function PostsPage() {
   const [filter, setFilter] = useState({ platform: '', status: '' });
   const [productImage, setProductImage] = useState<File | null>(null);
   const [productImageUrl, setProductImageUrl] = useState<string>('');
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingPost, setEditingPost] = useState<Post | null>(null);
   const [editText, setEditText] = useState('');
   const [editPublishAt, setEditPublishAt] = useState('');
   const [editProductNotes, setEditProductNotes] = useState('');
@@ -88,7 +279,7 @@ export default function PostsPage() {
     mutationFn: ({ id, body }: { id: string; body: { text?: string; publish_at?: string | null; product_notes?: string } }) => api.updatePost(id, body),
     onSuccess: () => {
       toast.success('Post updated');
-      setEditingId(null);
+      setEditingPost(null);
       qc.invalidateQueries({ queryKey: ['posts'] });
     },
     onError: () => toast.error('Update failed'),
@@ -214,16 +405,16 @@ export default function PostsPage() {
   }
 
   function startEdit(post: Post) {
-    setEditingId(post.id);
+    setEditingPost(post);
     setEditText(post.text || '');
     setEditPublishAt(toDateTimeLocal(post.publish_at));
     setEditProductNotes(post.product_notes || '');
   }
 
   function saveEdit() {
-    if (!editingId) return;
+    if (!editingPost) return;
     updateMutation.mutate({
-      id: editingId,
+      id: editingPost.id,
       body: { text: editText, publish_at: editPublishAt || null, product_notes: editProductNotes },
     });
   }
@@ -248,6 +439,20 @@ export default function PostsPage() {
   return (
     <div>
       <Toaster position="top-right" />
+
+      {/* Edit Modal */}
+      <EditModal
+        post={editingPost}
+        onClose={() => setEditingPost(null)}
+        onSave={saveEdit}
+        editText={editText}
+        setEditText={setEditText}
+        editPublishAt={editPublishAt}
+        setEditPublishAt={setEditPublishAt}
+        editProductNotes={editProductNotes}
+        setEditProductNotes={setEditProductNotes}
+        isPending={updateMutation.isPending}
+      />
 
 
       <div className="page-header">
@@ -501,47 +706,25 @@ export default function PostsPage() {
                         {post.publish_at ? new Date(post.publish_at).toLocaleString() : 'Draft'}
                       </div>
 
-                      {editingId === post.id ? (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                          <textarea
-                            className="form-textarea"
-                            rows={4}
-                            value={editText}
-                            onChange={e => setEditText(e.target.value)}
-                            style={{ fontSize: '0.88rem' }}
-                          />
-                          <div className="form-group">
-                            <label className="form-label" style={{ fontSize: '0.75rem' }}>Schedule At</label>
-                            <input type="datetime-local" className="form-input" value={editPublishAt} onChange={e => setEditPublishAt(e.target.value)} />
-                          </div>
-                          <div style={{ display: 'flex', gap: 8 }}>
-                            <button className="btn btn-secondary btn-sm" style={{ flex: 1 }} onClick={() => setEditingId(null)}>Cancel</button>
-                            <button className="btn btn-primary btn-sm" style={{ flex: 1 }} onClick={saveEdit}>Save</button>
-                          </div>
-                        </div>
-                      ) : (
-                        <>
-                          <p style={{ margin: 0, fontSize: '0.94rem', color: 'var(--color-text-primary)', lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                            {post.text || '—'}
-                          </p>
-                          
-                          {post.product_notes && (
-                            <div style={{ marginTop: 12, padding: '8px 12px', background: 'var(--color-bg-warm)', borderRadius: 8, fontSize: '0.82rem', color: 'var(--color-text-secondary)', display: 'flex', gap: 6 }}>
-                              <Lightbulb size={14} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />
-                              <span style={{ fontStyle: 'italic' }}>{post.product_notes}</span>
-                            </div>
-                          )}
+                      <p style={{ margin: 0, fontSize: '0.94rem', color: 'var(--color-text-primary)', lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                        {post.text || '\u2014'}
+                      </p>
 
-                          <div style={{ marginTop: 'auto', paddingTop: 16, display: 'flex', justifyContent: 'flex-end', gap: 8, borderTop: '1px solid var(--color-border-light)' }}>
-                            <button className="btn-icon btn-ghost" onClick={() => startEdit(post)} title="Edit">
-                              <Pencil size={14} />
-                            </button>
-                            <button className="btn-icon btn-ghost" onClick={() => handleDelete(post.id)} title="Delete">
-                              <Trash2 size={14} style={{ color: 'var(--color-error)' }} />
-                            </button>
-                          </div>
-                        </>
+                      {post.product_notes && (
+                        <div style={{ marginTop: 12, padding: '8px 12px', background: 'var(--color-bg-warm)', borderRadius: 8, fontSize: '0.82rem', color: 'var(--color-text-secondary)', display: 'flex', gap: 6 }}>
+                          <Lightbulb size={14} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />
+                          <span style={{ fontStyle: 'italic' }}>{post.product_notes}</span>
+                        </div>
                       )}
+
+                      <div style={{ marginTop: 'auto', paddingTop: 16, display: 'flex', justifyContent: 'flex-end', gap: 8, borderTop: '1px solid var(--color-border-light)' }}>
+                        <button className="btn-icon btn-ghost" onClick={() => startEdit(post)} title="Edit">
+                          <Pencil size={14} />
+                        </button>
+                        <button className="btn-icon btn-ghost" onClick={() => handleDelete(post.id)} title="Delete">
+                          <Trash2 size={14} style={{ color: 'var(--color-error)' }} />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -569,7 +752,12 @@ export default function PostsPage() {
         )}
       </div>
 
-      <style>{`.spin { animation: spin 1s linear infinite; } @keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      <style>{`
+        .spin { animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(28px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+      `}</style>
     </div>
   );
 }
