@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Zap, Loader2, Eye, EyeOff } from 'lucide-react';
 import { useLang } from '@/lib/LanguageContext';
 import Link from 'next/link';
+import Logo from '@/components/Logo';
 
 type Step = 'form' | 'verify';
 
@@ -133,7 +134,7 @@ function SignupContent() {
       <div style={{ width: '100%', maxWidth: 440 }}>
         {/* Brand */}
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 32 }}>
-          <img src="/logo.png" alt="SocialFlow" style={{ width: 180, height: 'auto', objectFit: 'contain' }} />
+          <Logo width={200} />
         </div>
 
         <div className="card" style={{ padding: '2rem' }}>

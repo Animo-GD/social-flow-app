@@ -7,6 +7,8 @@ import { useQuery } from '@tanstack/react-query';
 import WelcomePopup from '@/components/WelcomePopup';
 import BusinessOnboarding from '@/components/BusinessOnboarding';
 
+import Logo from '@/components/Logo';
+
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -56,10 +58,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           >
             <Menu size={18} />
           </button>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <img src="/logo.png" alt="logo" width={24} height={24} style={{ objectFit: 'contain' }} />
-            <span className="mobile-brand">SocialFlow</span>
-          </div>
+          <Logo width={140} />
         </div>
         {children}
       </main>

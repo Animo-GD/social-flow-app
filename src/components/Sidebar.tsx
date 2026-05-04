@@ -10,6 +10,7 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import { useLang } from '@/lib/LanguageContext';
 import type { TranslationKey } from '@/lib/i18n';
+import Logo from '@/components/Logo';
 
 const NAV: { href: string; key: TranslationKey; icon: React.ComponentType<{ size?: number }> }[] = [
   { href: '/dashboard',            key: 'nav_overview',   icon: LayoutDashboard },
@@ -42,9 +43,7 @@ export default function Sidebar({ mobileOpen, onClose }: { mobileOpen?: boolean;
     <aside className={`sidebar${mobileOpen ? ' mobile-open' : ''}`}>
       {/* Brand */}
       <div className="sidebar-brand">
-        <div style={{ width: '100%', padding: '0 10px' }}>
-          <img src="/logo.png" alt="SocialFlow" style={{ width: '100%', height: 'auto', display: 'block', objectFit: 'contain' }} />
-        </div>
+        <Logo width={160} />
         <button className="mobile-close-btn" type="button" aria-label="Close menu" onClick={onClose}>
           <X size={18} />
         </button>
