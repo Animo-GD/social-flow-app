@@ -60,6 +60,8 @@ export const translations = {
     toast_enter_topic: 'Please enter a topic',
     confirm_delete_post: 'Delete this post?',
     generate_content_title: 'Generate Content',
+    label_product_notes: 'Product Notes / Offers',
+    placeholder_product_notes: 'Add special offers, product pros, or key selling points...',
 
     // Messages page
     page_messages_title: 'Messages',
@@ -207,6 +209,8 @@ export const translations = {
     toast_enter_topic: 'يرجى إدخال موضوع',
     confirm_delete_post: 'حذف هذا المنشور؟',
     generate_content_title: 'توليد المحتوى',
+    label_product_notes: 'ملاحظات المنتج / العروض',
+    placeholder_product_notes: 'أضف عروض خاصة، مميزات المنتج، أو نقاط بيع أساسية...',
 
     // Messages page
     page_messages_title: 'الرسائل',

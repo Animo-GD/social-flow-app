@@ -28,6 +28,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const updates: Record<string, unknown> = {};
   if (typeof body.text === 'string') updates.text = body.text;
   if (typeof body.image_url === 'string' || body.image_url === null) updates.image_url = body.image_url;
+  if (typeof body.product_notes === 'string') updates.product_notes = body.product_notes;
   if (typeof body.publish_at === 'string') {
     const normalizedPublishAt = body.publish_at.trim() ? body.publish_at : null;
     updates.publish_at = normalizedPublishAt;

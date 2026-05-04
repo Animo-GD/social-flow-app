@@ -31,7 +31,7 @@ export default function PostsPage() {
   const qc = useQueryClient();
 
   const [tab, setTab] = useState<'create' | 'scheduled'>('create');
-  const [form, setForm] = useState({ topic: '', platform: 'instagram', tone: 'casual', language: 'en' });
+  const [form, setForm] = useState({ topic: '', platform: 'instagram', tone: 'casual', language: 'en', product_notes: '' });
   const [generated, setGenerated] = useState<{ text: string; image_url?: string } | null>(null);
   const [previewPostId, setPreviewPostId] = useState<string | null>(null);
   const [editedText, setEditedText] = useState('');
@@ -42,6 +42,7 @@ export default function PostsPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editText, setEditText] = useState('');
   const [editPublishAt, setEditPublishAt] = useState('');
+  const [editProductNotes, setEditProductNotes] = useState('');
   const previewTextareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   // Async generation state
@@ -68,7 +69,7 @@ export default function PostsPage() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, body }: { id: string; body: { text?: string; publish_at?: string | null } }) => api.updatePost(id, body),
+    mutationFn: ({ id, body }: { id: string; body: { text?: string; publish_at?: string | null; product_notes?: string } }) => api.updatePost(id, body),
     onSuccess: () => {
       toast.success('Post updated');
       setEditingId(null);
@@ -168,6 +169,7 @@ export default function PostsPage() {
         body: {
           text: editedText,
           publish_at: scheduleAt || null,
+          product_notes: form.product_notes,
         },
       });
       return;
@@ -178,6 +180,7 @@ export default function PostsPage() {
       image_url: generated.image_url,
       platform: form.platform,
       publish_at: scheduleAt || undefined,
+      product_notes: form.product_notes,
     });
   }
 
@@ -198,13 +201,14 @@ export default function PostsPage() {
     setEditingId(post.id);
     setEditText(post.text || '');
     setEditPublishAt(toDateTimeLocal(post.publish_at));
+    setEditProductNotes(post.product_notes || '');
   }
 
   function saveEdit() {
     if (!editingId) return;
     updateMutation.mutate({
       id: editingId,
-      body: { text: editText, publish_at: editPublishAt || null },
+      body: { text: editText, publish_at: editPublishAt || null, product_notes: editProductNotes },
     });
   }
 
@@ -287,6 +291,18 @@ export default function PostsPage() {
                   <option value="ar">{t('lang_arabic')}</option>
                   <option value="fr">{t('lang_french')}</option>
                 </select>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label" htmlFor="product-notes">{t('label_product_notes')}</label>
+                <textarea
+                  id="product-notes"
+                  className="form-input"
+                  rows={3}
+                  value={form.product_notes}
+                  onChange={e => setForm(f => ({ ...f, product_notes: e.target.value }))}
+                  placeholder={t('placeholder_product_notes')}
+                />
               </div>
 
               <div className="form-group">
@@ -451,20 +467,39 @@ export default function PostsPage() {
                               onChange={e => setEditText(e.target.value)}
                             />
                           ) : (
-                            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block', fontSize: '0.88rem', color: 'var(--color-text-secondary)' }}>
-                              {post.text || '—'}
-                            </span>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block', fontSize: '0.88rem', color: 'var(--color-text-secondary)' }}>
+                                {post.text || '—'}
+                              </span>
+                              {post.product_notes && (
+                                <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontStyle: 'italic', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                  Note: {post.product_notes}
+                                </span>
+                              )}
+                            </div>
                           )}
                         </td>
                         <td><StatusBadge status={post.status} t={t} /></td>
                         <td style={{ fontSize: '0.82rem', color: 'var(--color-text-secondary)' }}>
                           {editingId === post.id ? (
-                            <input
-                              type="datetime-local"
-                              className="form-input"
-                              value={editPublishAt}
-                              onChange={e => setEditPublishAt(e.target.value)}
-                            />
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                              <input
+                                type="datetime-local"
+                                className="form-input"
+                                value={editPublishAt}
+                                onChange={e => setEditPublishAt(e.target.value)}
+                              />
+                              <div>
+                                <label className="form-label" style={{ fontSize: '0.75rem', marginBottom: 2 }}>Notes</label>
+                                <input
+                                  className="form-input"
+                                  style={{ fontSize: '0.82rem' }}
+                                  value={editProductNotes}
+                                  onChange={e => setEditProductNotes(e.target.value)}
+                                  placeholder="Offers/Pros..."
+                                />
+                              </div>
+                            </div>
                           ) : (
                             post.publish_at ? new Date(post.publish_at).toLocaleString() : 'Not scheduled'
                           )}

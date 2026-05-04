@@ -44,18 +44,19 @@ export interface Post {
   created_at?: string;
   text?: string;
   image_url?: string;
+  product_notes?: string;
 }
 
 export const api = {
   // Content
-  generateContent: (body: { topic: string; platform: string; tone: string; language: string }) =>
+  generateContent: (body: { topic: string; platform: string; tone: string; language: string; product_notes?: string }) =>
     req<{ text: string; image_url?: string }>('/api/content/generate', { method: 'POST', body: JSON.stringify(body) }),
 
   // Posts
   getPosts: () => req<Post[]>('/api/posts'),
-  schedulePost: (body: { text: string; image_url?: string; platform: string; publish_at?: string }) =>
+  schedulePost: (body: { text: string; image_url?: string; platform: string; publish_at?: string; product_notes?: string }) =>
     req<Post>('/api/posts/schedule', { method: 'POST', body: JSON.stringify(body) }),
-  updatePost: (id: string, body: { text?: string; image_url?: string | null; publish_at?: string | null }) =>
+  updatePost: (id: string, body: { text?: string; image_url?: string | null; publish_at?: string | null; product_notes?: string }) =>
     req<Post>(`/api/posts/${id}`, { method: 'PATCH', body: JSON.stringify(body) }),
   deletePost: (id: string) => req<void>(`/api/posts/${id}`, { method: 'DELETE' }),
 

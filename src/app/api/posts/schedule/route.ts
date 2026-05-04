@@ -7,14 +7,14 @@ export async function POST(req: NextRequest) {
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const body = await req.json();
-  const { text, image_url, platform, publish_at } = body;
+  const { text, image_url, platform, publish_at, product_notes } = body;
   const normalizedPublishAt =
     typeof publish_at === 'string' && publish_at.trim().length > 0 ? publish_at : null;
   const status = normalizedPublishAt ? 'scheduled' : 'draft';
 
   const { data, error } = await supabase
     .from('posts')
-    .insert({ text, image_url, platform, publish_at: normalizedPublishAt, status, user_id: session.id })
+    .insert({ text, image_url, platform, publish_at: normalizedPublishAt, status, user_id: session.id, product_notes })
     .select()
     .single();
 
