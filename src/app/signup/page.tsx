@@ -55,6 +55,20 @@ function SignupContent() {
   async function handleSignup() {
     setLoading(true);
     setError('');
+    // Password strength check
+    const p = form.password;
+    let s = 0;
+    if (p.length >= 8) s++;
+    if (/[A-Z]/.test(p)) s++;
+    if (/[0-9]/.test(p)) s++;
+    if (/[^A-Za-z0-9]/.test(p)) s++;
+
+    if (s < 3) {
+      setError(isAr ? 'يرجى اختيار كلمة مرور أقوى (يجب أن تكون "متوسطة" على الأقل)' : 'Please choose a stronger password (at least "Fair" strength)');
+      setLoading(false);
+      return;
+    }
+
     try {
       const res = await fetch('/api/auth/signup', {
         method: 'POST',

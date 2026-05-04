@@ -19,11 +19,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Email and password required' }, { status: 400 });
     }
 
-    // Look up user
+    // Look up user by email OR username
     const { data: userRow } = await supabase
       .from('users')
-      .select('id, name, email, password_hash, is_admin, email_verified')
-      .eq('email', email)
+      .select('id, name, email, username, password_hash, is_admin, email_verified')
+      .or(`email.eq.${email},username.eq.${email}`)
       .single();
 
     const isDemo = email === 'admin@socialflow.ai' && password === 'demo';

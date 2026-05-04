@@ -8,7 +8,8 @@ import Link from 'next/link';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { t } = useLang();
+  const { t, lang } = useLang();
+  const isAr = lang === 'ar';
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -43,10 +44,6 @@ export default function LoginPage() {
     setLoading(false);
   }
 
-  async function handleResendAndVerify() {
-    router.push(`/signup?email=${encodeURIComponent(email)}&verify=1`);
-  }
-
   return (
     <div style={{
       minHeight: '100vh', display: 'flex', alignItems: 'center',
@@ -75,48 +72,46 @@ export default function LoginPage() {
             </div>
           )}
 
-          <div>
-            <div className="form-group">
-              <label className="form-label" htmlFor="email">{t('label_email')}</label>
-              <input
-                id="email" type="email" className="form-input"
-                value={email} onChange={e => setEmail(e.target.value)}
-                placeholder="Enter your email address" required
-              />
-            </div>
-            <div className="form-group">
-              <label className="form-label" htmlFor="password">{t('label_password')}</label>
-              <input
-                id="password" type="password" className="form-input"
-                value={password} onChange={e => setPassword(e.target.value)}
-                onKeyDown={e => {
-                  if (e.key === 'Enter' && !loading) {
-                    e.preventDefault();
-                    void login();
-                  }
-                }}
-                placeholder="••••••••" required
-              />
-            </div>
-            <button
-              type="button" className="btn btn-primary"
-              style={{ width: '100%', justifyContent: 'center', marginTop: 8 }}
-              disabled={loading}
-              onClick={() => void login()}
-            >
-              {loading && <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} />}
-              {loading ? t('btn_signing_in') : t('btn_signin')}
-            </button>
-            <p style={{ textAlign: 'center', marginTop: 20, fontSize: '0.88rem', color: 'var(--color-text-secondary)' }}>
-              {t('login_no_account') || "Don't have an account? "}
-              <Link href="/signup" style={{ color: 'var(--color-accent)', fontWeight: 600 }}>
-                {t('login_signup_link') || 'Sign up'}
-              </Link>
-            </p>
+          <div className="form-group">
+            <label className="form-label" htmlFor="email">{isAr ? 'البريد الإلكتروني أو اسم المستخدم' : 'Email or Username'}</label>
+            <input
+              id="email" type="text" className="form-input"
+              value={email} onChange={e => setEmail(e.target.value)}
+              placeholder={isAr ? 'أدخل بريدك أو اسم المستخدم' : 'Enter email or username'} required
+            />
           </div>
+          <div className="form-group">
+            <label className="form-label" htmlFor="password">{t('label_password')}</label>
+            <input
+              id="password" type="password" className="form-input"
+              value={password} onChange={e => setPassword(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Enter' && !loading) {
+                  e.preventDefault();
+                  void login();
+                }
+              }}
+              placeholder="••••••••" required
+            />
+          </div>
+          <button
+            type="button" className="btn btn-primary"
+            style={{ width: '100%', justifyContent: 'center', marginTop: 8 }}
+            disabled={loading}
+            onClick={() => void login()}
+          >
+            {loading && <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} />}
+            {loading ? t('btn_signing_in') : t('btn_signin')}
+          </button>
+          <p style={{ textAlign: 'center', marginTop: 20, fontSize: '0.88rem', color: 'var(--color-text-secondary)' }}>
+            {t('login_no_account') || "Don't have an account? "}
+            <Link href="/signup" style={{ color: 'var(--color-accent)', fontWeight: 600 }}>
+              {t('login_signup_link') || 'Sign up'}
+            </Link>
+          </p>
         </div>
+        <style dangerouslySetInnerHTML={{ __html: `@keyframes spin { to { transform: rotate(360deg); } }` }} />
       </div>
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }
