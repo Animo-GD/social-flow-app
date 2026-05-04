@@ -4,7 +4,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api, Post } from '@/lib/api';
 import dynamic from 'next/dynamic';
-import { Loader2, Sparkles, Calendar, Trash2, Clock, CheckCircle, XCircle, Image as ImageIcon, FileText, Pencil } from 'lucide-react';
+import { Loader2, Sparkles, Calendar, Trash2, Clock, CheckCircle, XCircle, Image as ImageIcon, FileText, Pencil, Video, Instagram, Facebook, Linkedin, Twitter, Save, Lightbulb, Globe } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Toaster } from 'react-hot-toast';
 import { useLang } from '@/lib/LanguageContext';
@@ -23,6 +23,15 @@ function StatusBadge({ status, t }: { status: Post['status']; t: (k: Translation
   if (status === 'failed')   return <span className="badge badge-error"><XCircle size={10} style={{ marginInlineEnd: 3 }} />{t('status_failed')}</span>;
   if (status === 'completed') return <span className="badge badge-success"><CheckCircle size={10} style={{ marginInlineEnd: 3 }} />Completed</span>;
   return <span className="badge"><Clock size={10} style={{ marginInlineEnd: 3 }} />{t('status_scheduled')}</span>;
+}
+
+function PlatformIcon({ platform }: { platform: string }) {
+  const size = 16;
+  if (platform === 'instagram') return <Instagram size={size} style={{ color: '#E4405F' }} />;
+  if (platform === 'facebook') return <Facebook size={size} style={{ color: '#1877F2' }} />;
+  if (platform === 'linkedin') return <Linkedin size={size} style={{ color: '#0A66C2' }} />;
+  if (platform === 'x') return <Twitter size={size} style={{ color: '#000000' }} />;
+  return <Globe size={size} />;
 }
 
 export default function PostsPage() {
@@ -254,7 +263,7 @@ export default function PostsPage() {
             <ImageIcon size={14} style={{ marginInlineEnd: 6, verticalAlign: 'middle' }} />{isAr ? 'الصور' : 'Images'}
           </button>
           <button className={`tab-btn${tab === 'videos' ? ' active' : ''}`} onClick={() => setTab('videos')}>
-            <Calendar size={14} style={{ marginInlineEnd: 6, verticalAlign: 'middle' }} />{isAr ? 'الفيديوهات' : 'Videos'}
+            <Video size={14} style={{ marginInlineEnd: 6, verticalAlign: 'middle' }} />{isAr ? 'الفيديوهات' : 'Videos'}
           </button>
         </div>
 
@@ -445,100 +454,92 @@ export default function PostsPage() {
               </div>
             ) : filtered.length === 0 ? (
               <div className="empty-state">
-                <Calendar size={40} />
+                <FileText size={40} style={{ opacity: 0.3 }} />
                 <p>{t('no_posts_found')}</p>
               </div>
             ) : (
-              <div className="table-wrap">
-                <table className="data-table">
-                  <thead>
-                    <tr>
-                      <th>{t('col_platform')}</th>
-                      <th>{t('col_content')}</th>
-                      <th>{t('col_status')}</th>
-                      <th>{t('col_scheduled_at')}</th>
-                      <th></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filtered.map(post => (
-                      <tr key={post.id}>
-                        <td><span className="badge badge-gray" style={{ textTransform: 'capitalize' }}>{post.platform}</span></td>
-                        <td style={{ maxWidth: 280 }}>
-                          {editingId === post.id ? (
+              <div style={{ display: 'grid', gap: 16 }}>
+                {filtered.map(post => (
+                  <div key={post.id} className="card-flat" style={{ padding: 0, overflow: 'hidden', border: '1px solid var(--color-border)', transition: 'all 0.2s ease' }}>
+                    <div style={{ display: 'flex', flexDirection: isAr ? 'row-reverse' : 'row' }}>
+                      {/* Thumbnail */}
+                      <div style={{ width: 120, height: 120, flexShrink: 0, background: 'var(--color-bg-warm)', display: 'flex', alignItems: 'center', justifyContent: 'center', borderInlineEnd: '1px solid var(--color-border)' }}>
+                        {post.image_url ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={post.image_url} alt="Post" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        ) : (
+                          <ImageIcon size={24} style={{ opacity: 0.2 }} />
+                        )}
+                      </div>
+
+                      {/* Content */}
+                      <div style={{ flex: 1, padding: '16px', display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, justifyContent: 'space-between' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <PlatformIcon platform={post.platform} />
+                            <StatusBadge status={post.status} t={t} />
+                          </div>
+                          <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: 4 }}>
+                            <Clock size={12} />
+                            {post.publish_at ? new Date(post.publish_at).toLocaleString() : 'Not scheduled'}
+                          </div>
+                        </div>
+
+                        {editingId === post.id ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                             <textarea
                               className="form-textarea"
                               rows={3}
                               value={editText}
                               onChange={e => setEditText(e.target.value)}
+                              style={{ fontSize: '0.88rem' }}
                             />
-                          ) : (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block', fontSize: '0.88rem', color: 'var(--color-text-secondary)' }}>
-                                {post.text || '—'}
-                              </span>
-                              {post.product_notes && (
-                                <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontStyle: 'italic', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                  Note: {post.product_notes}
-                                </span>
-                              )}
-                            </div>
-                          )}
-                        </td>
-                        <td><StatusBadge status={post.status} t={t} /></td>
-                        <td style={{ fontSize: '0.82rem', color: 'var(--color-text-secondary)' }}>
-                          {editingId === post.id ? (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                              <input
-                                type="datetime-local"
-                                className="form-input"
-                                value={editPublishAt}
-                                onChange={e => setEditPublishAt(e.target.value)}
-                              />
-                              <div>
-                                <label className="form-label" style={{ fontSize: '0.75rem', marginBottom: 2 }}>Notes</label>
-                                <input
-                                  className="form-input"
-                                  style={{ fontSize: '0.82rem' }}
-                                  value={editProductNotes}
-                                  onChange={e => setEditProductNotes(e.target.value)}
-                                  placeholder="Offers/Pros..."
-                                />
+                            <div className="form-row">
+                              <div className="form-group">
+                                <label className="form-label" style={{ fontSize: '0.75rem' }}>Schedule At</label>
+                                <input type="datetime-local" className="form-input" value={editPublishAt} onChange={e => setEditPublishAt(e.target.value)} />
+                              </div>
+                              <div className="form-group">
+                                <label className="form-label" style={{ fontSize: '0.75rem' }}>Product Notes</label>
+                                <input className="form-input" value={editProductNotes} onChange={e => setEditProductNotes(e.target.value)} placeholder="Offers/Pros..." />
                               </div>
                             </div>
-                          ) : (
-                            post.publish_at ? new Date(post.publish_at).toLocaleString() : 'Not scheduled'
-                          )}
-                        </td>
-                        <td>
-                          <div style={{ display: 'flex', gap: 6 }}>
-                            {editingId === post.id ? (
-                              <>
-                                <button className="btn btn-secondary btn-sm" onClick={saveEdit} disabled={updateMutation.isPending}>
-                                  Save
-                                </button>
-                                <button className="btn btn-secondary btn-sm" onClick={() => setEditingId(null)} disabled={updateMutation.isPending}>
-                                  Cancel
-                                </button>
-                              </>
-                            ) : (
+                            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                              <button className="btn btn-secondary btn-sm" onClick={() => setEditingId(null)} disabled={updateMutation.isPending}>Cancel</button>
+                              <button className="btn btn-primary btn-sm" onClick={saveEdit} disabled={updateMutation.isPending}>
+                                {updateMutation.isPending ? <Loader2 size={12} className="spin" /> : <Save size={12} />} Save Changes
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <>
+                            <p style={{ margin: 0, fontSize: '0.94rem', color: 'var(--color-text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', lineHeight: 1.5 }}>
+                              {post.text || '—'}
+                            </p>
+                            {post.product_notes && (
+                              <div style={{ marginTop: 8, fontSize: '0.75rem', color: 'var(--color-text-muted)', display: 'flex', alignItems: 'flex-start', gap: 4 }}>
+                                <Lightbulb size={12} style={{ marginTop: 2, flexShrink: 0, color: 'var(--color-accent)' }} />
+                                <span style={{ fontStyle: 'italic' }}>Note: {post.product_notes}</span>
+                              </div>
+                            )}
+                            <div style={{ marginTop: 'auto', paddingTop: 12, display: 'flex', justifyContent: 'flex-end', gap: 4 }}>
                               <button className="btn-icon btn-ghost" title="Edit" onClick={() => startEdit(post)}>
                                 <Pencil size={14} />
                               </button>
-                            )}
-                            <button
-                              className="btn-icon btn-ghost" title="Delete"
-                              disabled={deleteMutation.isPending || updateMutation.isPending}
-                              onClick={() => handleDelete(post.id)}
-                            >
-                              <Trash2 size={14} style={{ color: 'var(--color-error)' }} />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                              <button
+                                className="btn-icon btn-ghost" title="Delete"
+                                disabled={deleteMutation.isPending || updateMutation.isPending}
+                                onClick={() => handleDelete(post.id)}
+                              >
+                                <Trash2 size={14} style={{ color: 'var(--color-error)' }} />
+                              </button>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </div>
@@ -556,7 +557,7 @@ export default function PostsPage() {
         {/* ── Videos tab ── */}
         {tab === 'videos' && (
           <div className="empty-state" style={{ minHeight: 400 }}>
-            <Calendar size={48} style={{ opacity: 0.3 }} />
+            <Video size={48} style={{ opacity: 0.3 }} />
             <p className="text-body-med" style={{ color: 'var(--color-text-secondary)' }}>{isAr ? 'مكتبة الفيديوهات' : 'Video Library'}</p>
             <p style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>{isAr ? 'ستظهر هنا الفيديوهات المولدة بالذكاء الاصطناعي' : 'AI-generated videos will appear here'}</p>
           </div>
