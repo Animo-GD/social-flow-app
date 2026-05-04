@@ -250,7 +250,7 @@ export default function PostsPage() {
 
   const [tab, setTab] = useState<'create' | 'posts' | 'images' | 'videos'>('create');
   const [form, setForm] = useState({ topic: '', platform: 'instagram', tone: 'casual', language: 'en', product_notes: '' });
-  const [generated, setGenerated] = useState<{ text: string; image_url?: string } | null>(null);
+  const [generated, setGenerated] = useState<{ text: string; image_url?: string; video_url?: string } | null>(null);
   const [previewPostId, setPreviewPostId] = useState<string | null>(null);
   const [editedText, setEditedText] = useState('');
   const [scheduleAt, setScheduleAt] = useState('');
@@ -265,7 +265,7 @@ export default function PostsPage() {
 
   // Async generation state
   const [activeJobId, setActiveJobId] = useState<string | null>(null);
-  const [generatingActionType, setGeneratingActionType] = useState<'generate_text' | 'generate_image' | 'generate_both'>('generate_both');
+  const [generatingActionType, setGeneratingActionType] = useState<'generate_text' | 'generate_image' | 'generate_both' | 'generate_video'>('generate_both');
 
   const { data: posts, isLoading: postsLoading } = useQuery({ queryKey: ['posts'], queryFn: api.getPosts });
 
