@@ -57,6 +57,7 @@ interface BusinessProfile {
   primary_language: string; content_style: string; posting_frequency: string;
   preferred_platforms: string[]; example_posts: ExamplePost[];
   keywords: string[]; hashtags: string[]; competitors: string[];
+  logo_url?: string;
 }
 
 const EMPTY_BIZ: BusinessProfile = {
@@ -65,6 +66,7 @@ const EMPTY_BIZ: BusinessProfile = {
   brand_voice: 'professional', brand_values: [], primary_language: 'ar',
   content_style: '', posting_frequency: '3x per week', preferred_platforms: [],
   example_posts: [], keywords: [], hashtags: [], competitors: [],
+  logo_url: '',
 };
 
 const PLATFORMS  = ['instagram', 'facebook', 'linkedin', 'x', 'whatsapp', 'telegram'];
@@ -510,6 +512,10 @@ function BusinessTab() {
   const [form, setForm] = useState<BusinessProfile>(EMPTY_BIZ);
   const [newPost, setNewPost] = useState<Omit<ExamplePost, 'id'>>({ platform: 'instagram', text: '', notes: '' });
   const [showPostForm, setShowPostForm] = useState(false);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [logoUploading, setLogoUploading] = useState(false);
+  const logoRef = useRef<HTMLInputElement>(null);
 
   const { data: profile, isLoading } = useQuery({
     queryKey: ['business'],
@@ -521,14 +527,33 @@ function BusinessTab() {
   }, [profile]);
 
   const saveMutation = useMutation({
-    mutationFn: (data: BusinessProfile) =>
-      fetch('/api/business', {
+    mutationFn: async (data: BusinessProfile) => {
+      // Upload logo first if a new file was chosen
+      let finalForm = { ...data };
+      if (logoFile) {
+        setLogoUploading(true);
+        const fd = new FormData();
+        fd.append('file', logoFile);
+        const res = await fetch('/api/uploads/business-logo', { method: 'POST', body: fd });
+        const uploadData = await res.json();
+        setLogoUploading(false);
+        if (!res.ok) throw new Error(uploadData.error || 'Logo upload failed');
+        finalForm = { ...finalForm, logo_url: uploadData.url };
+        setLogoFile(null);
+      }
+      const res = await fetch('/api/business', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      }).then(r => r.json()),
-    onSuccess: () => {
+        body: JSON.stringify(finalForm),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || 'Save failed');
+      return json;
+    },
+    onSuccess: (saved) => {
       toast.success(isAr ? 'تم حفظ الملف التجاري ✓' : 'Business profile saved ✓');
+      // Update logo_url in local form from saved result
+      if (saved?.logo_url) set('logo_url', saved.logo_url);
       qc.invalidateQueries({ queryKey: ['business'] });
     },
     onError: () => toast.error(isAr ? 'فشل الحفظ' : 'Save failed'),
@@ -536,6 +561,13 @@ function BusinessTab() {
 
   function set<K extends keyof BusinessProfile>(key: K, val: BusinessProfile[K]) {
     setForm(f => ({ ...f, [key]: val }));
+  }
+
+  function handleLogoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setLogoFile(file);
+    setLogoPreview(URL.createObjectURL(file));
   }
 
   function addExamplePost() {
@@ -550,10 +582,52 @@ function BusinessTab() {
     return <div style={{ display: 'grid', gap: 16 }}>{[1, 2, 3].map(i => <div key={i} className="skeleton" style={{ height: 100, borderRadius: 12 }} />)}</div>;
   }
 
+  const logoSrc = logoPreview ?? form.logo_url;
+
   return (
     <form onSubmit={e => { e.preventDefault(); saveMutation.mutate(form); }} style={{ display: 'grid', gap: 0 }}>
 
       <BizSection icon={Building2} title={isAr ? 'هوية العمل' : 'Business Identity'}>
+
+        {/* ── Logo Upload ── */}
+        <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 20, padding: '16px', background: 'var(--color-bg-warm)', borderRadius: 10, border: '1px solid var(--color-border)' }}>
+          <div style={{ position: 'relative', flexShrink: 0 }}>
+            {logoSrc ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={logoSrc} alt="Business Logo" style={{ width: 80, height: 80, objectFit: 'contain', borderRadius: 10, border: '2px solid var(--color-border)', background: '#fff', padding: 4 }} />
+            ) : (
+              <div style={{ width: 80, height: 80, borderRadius: 10, border: '2px dashed var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff' }}>
+                <Building2 size={32} style={{ color: 'var(--color-text-muted)' }} />
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={() => logoRef.current?.click()}
+              style={{ position: 'absolute', bottom: -6, insetInlineEnd: -6, width: 26, height: 26, borderRadius: '50%', background: 'var(--color-accent)', border: '2px solid #fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+            >
+              {logoUploading ? <Loader2 size={12} color="#fff" style={{ animation: 'spin 1s linear infinite' }} /> : <Camera size={12} color="#fff" />}
+            </button>
+            <input
+              ref={logoRef}
+              type="file"
+              accept="image/png,image/jpeg,image/webp,image/svg+xml"
+              style={{ display: 'none' }}
+              onChange={handleLogoChange}
+            />
+          </div>
+          <div>
+            <div style={{ fontWeight: 700, fontSize: '0.94rem' }}>{isAr ? 'شعار الشركة (اختياري)' : 'Company Logo (Optional)'}</div>
+            <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginTop: 3 }}>
+              {isAr ? 'سيُستخدم عند إنشاء الصور والفيديوهات' : 'Used when generating images & videos'}
+            </div>
+            {logoFile && (
+              <div style={{ marginTop: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span className="badge badge-success" style={{ fontSize: '0.72rem' }}>✓ {logoFile.name}</span>
+                <button type="button" onClick={() => { setLogoFile(null); setLogoPreview(null); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)' }}><X size={13} /></button>
+              </div>
+            )}
+          </div>
+        </div>
         <div className="form-row">
           <div className="form-group">
             <label className="form-label">{isAr ? 'اسم العمل *' : 'Business Name *'}</label>
@@ -684,8 +758,8 @@ function BusinessTab() {
 
       {/* Sticky save */}
       <div style={{ position: 'sticky', bottom: 16, textAlign: 'center', paddingTop: 8 }}>
-        <button type="submit" className="btn btn-primary" disabled={saveMutation.isPending} style={{ minWidth: 200, justifyContent: 'center', boxShadow: '0 4px 20px rgba(0,117,222,0.35)' }}>
-          {saveMutation.isPending ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Save size={14} />}
+        <button type="submit" className="btn btn-primary" disabled={saveMutation.isPending || logoUploading} style={{ minWidth: 200, justifyContent: 'center', boxShadow: '0 4px 20px rgba(0,117,222,0.35)' }}>
+          {(saveMutation.isPending || logoUploading) ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Save size={14} />}
           {isAr ? 'حفظ الملف التجاري' : 'Save Business Profile'}
         </button>
       </div>

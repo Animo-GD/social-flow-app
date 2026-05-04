@@ -30,7 +30,7 @@ export default function PostsPage() {
   const isAr = lang === 'ar';
   const qc = useQueryClient();
 
-  const [tab, setTab] = useState<'create' | 'scheduled'>('create');
+  const [tab, setTab] = useState<'create' | 'posts' | 'images' | 'videos'>('create');
   const [form, setForm] = useState({ topic: '', platform: 'instagram', tone: 'casual', language: 'en', product_notes: '' });
   const [generated, setGenerated] = useState<{ text: string; image_url?: string } | null>(null);
   const [previewPostId, setPreviewPostId] = useState<string | null>(null);
@@ -57,7 +57,7 @@ export default function PostsPage() {
       toast.success(t('toast_post_scheduled'));
       qc.invalidateQueries({ queryKey: ['posts'] });
       setPreviewPostId(null);
-      setGenerated(null); setScheduleAt(''); setTab('scheduled');
+      setGenerated(null); setScheduleAt(''); setTab('posts');
     },
     onError: () => toast.error(t('toast_scheduling_failed')),
   });
@@ -246,9 +246,15 @@ export default function PostsPage() {
           <button className={`tab-btn${tab === 'create' ? ' active' : ''}`} onClick={() => setTab('create')}>
             <Sparkles size={14} style={{ marginInlineEnd: 6, verticalAlign: 'middle' }} />{t('tab_create')}
           </button>
-          <button className={`tab-btn${tab === 'scheduled' ? ' active' : ''}`} onClick={() => setTab('scheduled')}>
-            <Calendar size={14} style={{ marginInlineEnd: 6, verticalAlign: 'middle' }} />{t('tab_scheduled')}
-            {posts && <span className="badge" style={{ marginInlineStart: 8 }}>{posts.filter(p => p.status === 'scheduled').length}</span>}
+          <button className={`tab-btn${tab === 'posts' ? ' active' : ''}`} onClick={() => setTab('posts')}>
+            <FileText size={14} style={{ marginInlineEnd: 6, verticalAlign: 'middle' }} />{isAr ? 'المنشورات' : 'Posts'}
+            {posts && <span className="badge" style={{ marginInlineStart: 8 }}>{posts.length}</span>}
+          </button>
+          <button className={`tab-btn${tab === 'images' ? ' active' : ''}`} onClick={() => setTab('images')}>
+            <ImageIcon size={14} style={{ marginInlineEnd: 6, verticalAlign: 'middle' }} />{isAr ? 'الصور' : 'Images'}
+          </button>
+          <button className={`tab-btn${tab === 'videos' ? ' active' : ''}`} onClick={() => setTab('videos')}>
+            <Calendar size={14} style={{ marginInlineEnd: 6, verticalAlign: 'middle' }} />{isAr ? 'الفيديوهات' : 'Videos'}
           </button>
         </div>
 
@@ -410,8 +416,8 @@ export default function PostsPage() {
           </div>
         )}
 
-        {/* ── Scheduled posts table ── */}
-        {tab === 'scheduled' && (
+        {/* ── Posts table ── */}
+        {tab === 'posts' && (
           <div>
             <div className="filters-row">
               <select
@@ -535,6 +541,24 @@ export default function PostsPage() {
                 </table>
               </div>
             )}
+          </div>
+        )}
+
+        {/* ── Images tab ── */}
+        {tab === 'images' && (
+          <div className="empty-state" style={{ minHeight: 400 }}>
+            <ImageIcon size={48} style={{ opacity: 0.3 }} />
+            <p className="text-body-med" style={{ color: 'var(--color-text-secondary)' }}>{isAr ? 'مكتبة الصور' : 'Image Library'}</p>
+            <p style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>{isAr ? 'ستظهر هنا الصور المولدة بالذكاء الاصطناعي' : 'AI-generated images will appear here'}</p>
+          </div>
+        )}
+
+        {/* ── Videos tab ── */}
+        {tab === 'videos' && (
+          <div className="empty-state" style={{ minHeight: 400 }}>
+            <Calendar size={48} style={{ opacity: 0.3 }} />
+            <p className="text-body-med" style={{ color: 'var(--color-text-secondary)' }}>{isAr ? 'مكتبة الفيديوهات' : 'Video Library'}</p>
+            <p style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>{isAr ? 'ستظهر هنا الفيديوهات المولدة بالذكاء الاصطناعي' : 'AI-generated videos will appear here'}</p>
           </div>
         )}
       </div>
