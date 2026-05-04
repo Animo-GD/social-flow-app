@@ -42,7 +42,7 @@ function SignupContent() {
     if (emailParam && verifyParam === '1') {
       setForm(f => ({ ...f, email: emailParam }));
       setStep('verify');
-      
+
       // Auto trigger resend code
       fetch('/api/auth/resend-code', {
         method: 'POST',
@@ -109,7 +109,7 @@ function SignupContent() {
           return c - 1;
         });
       }, 1000);
-    } catch {}
+    } catch { }
   }
 
   const isAr = lang === 'ar';
@@ -162,7 +162,7 @@ function SignupContent() {
                   type="email"
                   value={form.email}
                   onChange={e => set('email', e.target.value)}
-                  placeholder="sara.jones@outlook.com"
+                  placeholder="Enter your email address"
                   required
                 />
               </div>
