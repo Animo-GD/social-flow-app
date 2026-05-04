@@ -4,7 +4,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api, Post } from '@/lib/api';
 import dynamic from 'next/dynamic';
-import { Loader2, Sparkles, Calendar, Trash2, Clock, CheckCircle, XCircle, Image as ImageIcon, FileText, Video, Save, Lightbulb, X } from 'lucide-react';
+import { Loader2, Sparkles, Calendar, Trash2, Clock, CheckCircle, XCircle, Image as ImageIcon, FileText, Video, Save, Lightbulb, X, Instagram, Facebook, Linkedin } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Toaster } from 'react-hot-toast';
 import { useLang } from '@/lib/LanguageContext';
@@ -32,11 +32,25 @@ const PLATFORM_STYLES: Record<string, { bg: string; color: string; label: string
   x:         { bg: '#f3f3f3', color: '#000',     label: 'X'  },
 };
 
+function PlatformLogo({ platform, size = 14 }: { platform: string; size?: number }) {
+  if (platform === 'instagram') return <Instagram size={size} />;
+  if (platform === 'facebook') return <Facebook size={size} />;
+  if (platform === 'linkedin') return <Linkedin size={size} />;
+  if (platform === 'x') {
+    return (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
+        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+      </svg>
+    );
+  }
+  return <span>{platform.slice(0, 2).toUpperCase()}</span>;
+}
+
 function PlatformIcon({ platform }: { platform: string }) {
   const s = PLATFORM_STYLES[platform] ?? { bg: 'var(--color-bg-warm)', color: 'var(--color-text-secondary)', label: platform.slice(0,2).toUpperCase() };
   return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, borderRadius: 8, background: s.bg, color: s.color, fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.02em' }}>
-      {s.label}
+    <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, borderRadius: 8, background: s.bg, color: s.color }}>
+      <PlatformLogo platform={platform} size={14} />
     </span>
   );
 }
@@ -74,158 +88,138 @@ function EditModal({ post, onClose, onSave, editText, setEditText, editPublishAt
       onClick={(e) => { if (e.target === overlayRef.current) onClose(); }}
       style={{
         position: 'fixed', inset: 0, zIndex: 1000,
-        background: 'rgba(0,0,0,0.55)',
-        backdropFilter: 'blur(6px)',
+        background: 'rgba(0,0,0,0.65)',
+        backdropFilter: 'blur(8px)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        padding: '24px',
-        animation: 'fadeIn 0.18s ease',
+        padding: '16px',
+        animation: 'fadeIn 0.2s ease',
       }}
     >
       <div style={{
-        background: 'var(--color-bg-elevated, var(--color-card))',
-        borderRadius: 20,
+        background: '#fff',
+        borderRadius: 16,
         width: '100%',
-        maxWidth: 600,
-        maxHeight: '90vh',
-        overflow: 'auto',
-        boxShadow: '0 32px 80px rgba(0,0,0,0.35)',
-        animation: 'slideUp 0.22s cubic-bezier(0.16,1,0.3,1)',
+        maxWidth: 550,
+        maxHeight: '94vh',
+        overflow: 'hidden',
+        boxShadow: '0 24px 60px rgba(0,0,0,0.3)',
+        animation: 'slideUp 0.3s cubic-bezier(0.16,1,0.3,1)',
+        display: 'flex',
+        flexDirection: 'column',
       }}>
-        {/* Header */}
-        <div style={{ padding: '20px 24px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 32, height: 32, borderRadius: 10, background: ps.bg, color: ps.color, fontSize: '0.72rem', fontWeight: 700 }}>
-              {ps.label}
-            </span>
+        {/* Header (FB style) */}
+        <div style={{ padding: '16px 16px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ 
+              width: 40, height: 40, borderRadius: '50%', background: ps.bg, color: ps.color, 
+              display: 'flex', alignItems: 'center', justifyContent: 'center', 
+              fontSize: '0.85rem', fontWeight: 800, border: '1px solid var(--color-border)' 
+            }}>
+              <PlatformLogo platform={post.platform} size={20} />
+            </div>
             <div>
-              <p style={{ margin: 0, fontWeight: 600, fontSize: '1rem' }}>Edit Post</p>
-              <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
+              <p style={{ margin: 0, fontWeight: 700, fontSize: '0.94rem', color: '#050505', textTransform: 'capitalize' }}>{post.platform}</p>
+              <p style={{ margin: 0, fontSize: '0.82rem', color: '#65676b', display: 'flex', alignItems: 'center', gap: 4 }}>
+                <Clock size={12} />
                 {post.publish_at ? new Date(post.publish_at).toLocaleString() : 'Draft'}
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 6, borderRadius: 8, color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            style={{ 
+              background: '#e4e6eb', border: 'none', cursor: 'pointer', 
+              width: 32, height: 32, borderRadius: '50%', 
+              display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#65676b' 
+            }}
           >
             <X size={18} />
           </button>
         </div>
 
-        {/* Image if any */}
-        {post.image_url && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={post.image_url} alt="Post" style={{ width: '100%', maxHeight: 200, objectFit: 'cover', marginTop: 16 }} />
-        )}
-
-        {/* Body */}
-        <div style={{ padding: '20px 24px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {/* Enhanced textarea */}
-          <div style={{ position: 'relative' }}>
-            <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text-secondary)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Post Content</label>
+        <div style={{ flex: 1, overflowY: 'auto' }}>
+          {/* Plain Textarea */}
+          <div style={{ padding: '0 16px 12px' }}>
             <textarea
               value={editText}
               onChange={e => setEditText(e.target.value)}
-              rows={7}
+              placeholder="What's on your mind?"
+              rows={4}
               autoFocus
               style={{
                 width: '100%',
-                padding: '14px 16px',
-                borderRadius: 12,
-                border: '2px solid var(--color-border)',
-                background: 'var(--color-bg)',
-                color: 'var(--color-text-primary)',
-                fontSize: '0.97rem',
-                lineHeight: 1.65,
-                resize: 'vertical',
+                padding: 0,
+                border: 'none',
+                background: 'transparent',
+                color: '#050505',
+                fontSize: editText.length < 100 ? '1.25rem' : '1rem',
+                lineHeight: 1.5,
+                resize: 'none',
                 fontFamily: 'inherit',
                 outline: 'none',
-                transition: 'border-color 0.2s ease',
-                boxSizing: 'border-box',
+                minHeight: 100,
               }}
-              onFocus={e => { e.target.style.borderColor = 'var(--color-primary)'; }}
-              onBlur={e => { e.target.style.borderColor = 'var(--color-border)'; }}
-            />
-            <span style={{ position: 'absolute', bottom: 10, right: 12, fontSize: '0.72rem', color: 'var(--color-text-muted)' }}>
-              {editText.length} chars
-            </span>
-          </div>
-
-          {/* Product Notes */}
-          <div>
-            <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text-secondary)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              <Lightbulb size={12} style={{ marginInlineEnd: 4, verticalAlign: 'middle' }} />
-              Product Notes / Offer
-            </label>
-            <input
-              value={editProductNotes}
-              onChange={e => setEditProductNotes(e.target.value)}
-              placeholder="e.g. 20% off, free delivery..."
-              style={{
-                width: '100%',
-                padding: '12px 16px',
-                borderRadius: 10,
-                border: '2px solid var(--color-border)',
-                background: 'var(--color-bg)',
-                color: 'var(--color-text-primary)',
-                fontSize: '0.94rem',
-                fontFamily: 'inherit',
-                outline: 'none',
-                transition: 'border-color 0.2s ease',
-                boxSizing: 'border-box',
-              }}
-              onFocus={e => { e.target.style.borderColor = 'var(--color-primary)'; }}
-              onBlur={e => { e.target.style.borderColor = 'var(--color-border)'; }}
             />
           </div>
 
-          {/* Schedule */}
-          <div>
-            <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text-secondary)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              <Calendar size={12} style={{ marginInlineEnd: 4, verticalAlign: 'middle' }} />
-              Schedule Date &amp; Time
-            </label>
-            <input
-              type="datetime-local"
-              value={editPublishAt}
-              onChange={e => setEditPublishAt(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '12px 16px',
-                borderRadius: 10,
-                border: '2px solid var(--color-border)',
-                background: 'var(--color-bg)',
-                color: 'var(--color-text-primary)',
-                fontSize: '0.94rem',
-                fontFamily: 'inherit',
-                outline: 'none',
-                transition: 'border-color 0.2s ease',
-                boxSizing: 'border-box',
-              }}
-              onFocus={e => { e.target.style.borderColor = 'var(--color-primary)'; }}
-              onBlur={e => { e.target.style.borderColor = 'var(--color-border)'; }}
+          {/* Image */}
+          {post.image_url && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img 
+              src={post.image_url} 
+              alt="Post Content" 
+              style={{ width: '100%', display: 'block', maxHeight: 500, objectFit: 'contain', background: '#f0f2f5' }} 
             />
-          </div>
+          )}
 
-          {/* Actions */}
-          <div style={{ display: 'flex', gap: 10, paddingTop: 4 }}>
-            <button
-              onClick={onClose}
-              className="btn btn-secondary"
-              style={{ flex: 1, justifyContent: 'center' }}
-            >
-              Cancel
-            </button>
-            <button
-              onClick={onSave}
-              disabled={isPending}
-              className="btn btn-primary"
-              style={{ flex: 2, justifyContent: 'center' }}
-            >
-              {isPending ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Save size={14} />}
-              Save Changes
-            </button>
+          {/* Footer controls */}
+          <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+             {/* Product Notes Pill */}
+             {editProductNotes && (
+               <div style={{ background: '#f0f2f5', padding: '8px 12px', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+                 <Lightbulb size={16} style={{ color: 'var(--color-accent)' }} />
+                 <span style={{ fontSize: '0.88rem', color: '#4b4b4b', fontStyle: 'italic' }}>{editProductNotes}</span>
+               </div>
+             )}
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <label style={{ fontSize: '0.72rem', fontWeight: 600, color: '#65676b', textTransform: 'uppercase' }}>Schedule</label>
+                <input
+                  type="datetime-local"
+                  value={editPublishAt}
+                  onChange={e => setEditPublishAt(e.target.value)}
+                  style={{
+                    padding: '8px 12px', borderRadius: 8, border: '1px solid #dddfe2', background: '#f0f2f5', fontSize: '0.88rem', outline: 'none'
+                  }}
+                />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                 <label style={{ fontSize: '0.72rem', fontWeight: 600, color: '#65676b', textTransform: 'uppercase' }}>Notes</label>
+                 <input
+                  value={editProductNotes}
+                  onChange={e => setEditProductNotes(e.target.value)}
+                  placeholder="Notes..."
+                  style={{
+                    padding: '8px 12px', borderRadius: 8, border: '1px solid #dddfe2', background: '#f0f2f5', fontSize: '0.88rem', outline: 'none'
+                  }}
+                />
+              </div>
+            </div>
           </div>
+        </div>
+
+        {/* Action Button */}
+        <div style={{ padding: '12px 16px', borderTop: '1px solid #dddfe2' }}>
+          <button
+            onClick={onSave}
+            disabled={isPending}
+            className="btn btn-primary"
+            style={{ width: '100%', justifyContent: 'center', height: 36, borderRadius: 6, fontWeight: 600 }}
+          >
+            {isPending ? <Loader2 size={16} className="spin" /> : <Save size={16} />}
+            {isPending ? 'Saving...' : 'Save Changes'}
+          </button>
         </div>
       </div>
     </div>
@@ -732,10 +726,54 @@ export default function PostsPage() {
 
         {/* ── Images tab ── */}
         {tab === 'images' && (
-          <div className="empty-state" style={{ minHeight: 400 }}>
-            <ImageIcon size={48} style={{ opacity: 0.3 }} />
-            <p className="text-body-med" style={{ color: 'var(--color-text-secondary)' }}>{isAr ? 'مكتبة الصور' : 'Image Library'}</p>
-            <p style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>{isAr ? 'ستظهر هنا الصور المولدة بالذكاء الاصطناعي' : 'AI-generated images will appear here'}</p>
+          <div>
+            {postsLoading ? (
+               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 16 }}>
+                 {[1,2,3,4,5,6].map(i => <div key={i} className="skeleton" style={{ paddingTop: '100%', borderRadius: 12 }} />)}
+               </div>
+            ) : posts?.filter(p => p.image_url).length === 0 ? (
+              <div className="empty-state" style={{ minHeight: 400 }}>
+                <ImageIcon size={48} style={{ opacity: 0.3 }} />
+                <p className="text-body-med" style={{ color: 'var(--color-text-secondary)' }}>{isAr ? 'مكتبة الصور' : 'Image Library'}</p>
+                <p style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>{isAr ? 'ستظهر هنا الصور المولدة بالذكاء الاصطناعي' : 'AI-generated images will appear here'}</p>
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 16 }}>
+                {posts?.filter(p => p.image_url).map(post => (
+                  <div 
+                    key={post.id} 
+                    onClick={() => startEdit(post)}
+                    className="gallery-item"
+                    style={{ 
+                      position: 'relative', 
+                      paddingTop: '100%', 
+                      borderRadius: 12, 
+                      overflow: 'hidden', 
+                      cursor: 'pointer',
+                      border: '1px solid var(--color-border)',
+                      transition: 'transform 0.2s ease'
+                    }}
+                  >
+                    <img 
+                      src={post.image_url} 
+                      alt="Gallery Item" 
+                      style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }} 
+                    />
+                    <div style={{ 
+                      position: 'absolute', bottom: 8, right: 8, 
+                      background: 'rgba(255,255,255,0.9)', padding: '4px 6px', 
+                      borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      color: PLATFORM_STYLES[post.platform]?.color || '#000'
+                    }}>
+                      <PlatformLogo platform={post.platform} size={12} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            <style>{`
+              .gallery-item:hover { transform: scale(1.03); }
+            `}</style>
           </div>
         )}
 
