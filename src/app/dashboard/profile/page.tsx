@@ -8,7 +8,7 @@ import {
   User, Camera, Lock, Zap, Building2, CreditCard,
   Save, Loader2, Eye, EyeOff, CheckCircle, History,
   Plus, Trash2, ChevronDown, ChevronUp, Globe, Users,
-  Mic2, FileText, Lightbulb,
+  Mic2, FileText, Lightbulb, X,
 } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
@@ -313,8 +313,11 @@ function CreditsTab({ initialCredits }: { initialCredits: number }) {
   const { lang } = useLang();
   const isAr = lang === 'ar';
   const [buying, setBuying] = useState<string | null>(null);
+  const [selectedPkg, setSelectedPkg] = useState<CreditPackage | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<'moyasar' | 'paymob'>('paymob');
   const searchParams = useSearchParams();
   const success = searchParams.get('success');
+  const cancelled = searchParams.get('cancelled');
 
   const { data: balance, refetch } = useQuery({
     queryKey: ['credits-balance'],
@@ -330,7 +333,8 @@ function CreditsTab({ initialCredits }: { initialCredits: number }) {
   async function handleBuy(pkg: CreditPackage) {
     setBuying(pkg.id);
     try {
-      const res = await fetch('/api/credits/checkout', {
+      const endpoint = paymentMethod === 'moyasar' ? '/api/credits/checkout' : '/api/credits/checkout/paymob';
+      const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ packageId: pkg.id }),
@@ -340,6 +344,7 @@ function CreditsTab({ initialCredits }: { initialCredits: number }) {
       else toast.error(data.error || 'Checkout failed');
     } catch { toast.error('Failed to initiate checkout'); }
     setBuying(null);
+    setSelectedPkg(null);
   }
 
   return (
@@ -349,6 +354,34 @@ function CreditsTab({ initialCredits }: { initialCredits: number }) {
           <CheckCircle size={18} /> {isAr ? 'تم شراء الكريدت بنجاح!' : 'Credits purchased successfully!'}
         </div>
       )}
+      {cancelled && (
+        <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 10, color: '#991b1b' }}>
+          <X size={18} /> {isAr ? 'تم إلغاء عملية الدفع' : 'Payment was cancelled'}
+        </div>
+      )}
+
+      {/* Payment Method Selector */}
+      <div className="card" style={{ padding: '16px' }}>
+        <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--color-text-secondary)', marginBottom: '12px', textTransform: 'uppercase' }}>
+          {isAr ? 'طريقة الدفع المفضلة' : 'Preferred Payment Method'}
+        </div>
+        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+          <button 
+            className={`btn ${paymentMethod === 'paymob' ? 'btn-primary' : 'btn-secondary'}`}
+            onClick={() => setPaymentMethod('paymob')}
+            style={{ flex: 1, justifyContent: 'center' }}
+          >
+            🇪🇬 {isAr ? 'إنستا باي / فيزا (EGP)' : 'InstaPay / Card (EGP)'}
+          </button>
+          <button 
+            className={`btn ${paymentMethod === 'moyasar' ? 'btn-primary' : 'btn-secondary'}`}
+            onClick={() => setPaymentMethod('moyasar')}
+            style={{ flex: 1, justifyContent: 'center' }}
+          >
+            🇸🇦 {isAr ? 'مدى / فيزا (SAR)' : 'Mada / Visa (SAR)'}
+          </button>
+        </div>
+      </div>
 
       {/* Balance card */}
       <div className="card" style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
