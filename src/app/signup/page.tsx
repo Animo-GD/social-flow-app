@@ -147,7 +147,7 @@ function SignupContent() {
                   className="form-input"
                   value={form.username}
                   onChange={e => set('username', e.target.value)}
-                  placeholder={isAr ? 'مثال: ahmed_smith@' : 'e.g. @alex_creative'}
+                  placeholder={isAr ? 'قم بادخال اسم المستخدم الخاص بك' : 'Enter your username'}
                   required
                 />
                 <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: 4 }}>
@@ -162,7 +162,7 @@ function SignupContent() {
                   type="email"
                   value={form.email}
                   onChange={e => set('email', e.target.value)}
-                  placeholder="Enter your email address"
+                  placeholder={isAr ? 'قم بادخال البريد الإلكتروني الخاص بك' : "Enter your email address"}
                   required
                 />
               </div>
