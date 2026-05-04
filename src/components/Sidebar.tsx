@@ -42,10 +42,9 @@ export default function Sidebar({ mobileOpen, onClose }: { mobileOpen?: boolean;
     <aside className={`sidebar${mobileOpen ? ' mobile-open' : ''}`}>
       {/* Brand */}
       <div className="sidebar-brand">
-        <div className="sidebar-brand-icon">
-          <img src="/logo.png" alt="SocialFlow logo" width={28} height={28} style={{ display: 'block', objectFit: 'contain' }} />
+        <div style={{ width: '100%', padding: '0 10px' }}>
+          <img src="/logo.png" alt="SocialFlow" style={{ width: '100%', height: 'auto', display: 'block', objectFit: 'contain' }} />
         </div>
-        <span className="sidebar-brand-name">SocialFlow</span>
         <button className="mobile-close-btn" type="button" aria-label="Close menu" onClick={onClose}>
           <X size={18} />
         </button>

@@ -51,11 +51,8 @@ export default function LoginPage() {
     }}>
       <div style={{ width: '100%', maxWidth: 400 }}>
         {/* Brand */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, justifyContent: 'center', marginBottom: 32 }}>
-          <div style={{ width: 44, height: 44, position: 'relative' }}>
-            <img src="/logo.png" alt="SocialFlow" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-          </div>
-          <span style={{ fontSize: '1.25rem', fontWeight: 700 }}>SocialFlow</span>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 32 }}>
+          <img src="/logo.png" alt="SocialFlow" style={{ width: 180, height: 'auto', objectFit: 'contain' }} />
         </div>
 
         <div className="card" style={{ padding: '2rem' }}>
