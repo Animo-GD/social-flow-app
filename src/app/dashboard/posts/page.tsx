@@ -458,85 +458,83 @@ export default function PostsPage() {
                 <p>{t('no_posts_found')}</p>
               </div>
             ) : (
-              <div style={{ display: 'grid', gap: 16 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 20 }}>
                 {filtered.map(post => (
-                  <div key={post.id} className="card-flat" style={{ padding: 0, overflow: 'hidden', border: '1px solid var(--color-border)', transition: 'all 0.2s ease' }}>
-                    <div style={{ display: 'flex', flexDirection: isAr ? 'row-reverse' : 'row' }}>
-                      {/* Thumbnail */}
-                      <div style={{ width: 120, height: 120, flexShrink: 0, background: 'var(--color-bg-warm)', display: 'flex', alignItems: 'center', justifyContent: 'center', borderInlineEnd: '1px solid var(--color-border)' }}>
-                        {post.image_url ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={post.image_url} alt="Post" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                        ) : (
-                          <ImageIcon size={24} style={{ opacity: 0.2 }} />
-                        )}
+                  <div key={post.id} className="card-flat" style={{ padding: 0, overflow: 'hidden', border: '1px solid var(--color-border)', borderRadius: 12, display: 'flex', flexDirection: 'column', transition: 'transform 0.2s ease, box-shadow 0.2s ease' }}>
+                    {/* Image Preview (Gallery style) */}
+                    <div style={{ position: 'relative', paddingTop: '56.25%', background: 'var(--color-bg-warm)', overflow: 'hidden' }}>
+                      {post.image_url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img 
+                          src={post.image_url} 
+                          alt="Post" 
+                          style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }} 
+                        />
+                      ) : (
+                        <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <ImageIcon size={32} style={{ opacity: 0.1 }} />
+                        </div>
+                      )}
+                      
+                      {/* Platform Overlay */}
+                      <div style={{ position: 'absolute', top: 12, left: 12, background: 'rgba(255,255,255,0.9)', padding: '4px 8px', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 4, boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+                        <PlatformIcon platform={post.platform} />
                       </div>
 
-                      {/* Content */}
-                      <div style={{ flex: 1, padding: '16px', display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, justifyContent: 'space-between' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                            <PlatformIcon platform={post.platform} />
-                            <StatusBadge status={post.status} t={t} />
+                      {/* Status Overlay */}
+                      <div style={{ position: 'absolute', top: 12, right: 12 }}>
+                        <StatusBadge status={post.status} t={t} />
+                      </div>
+                    </div>
+
+                    {/* Content Area */}
+                    <div style={{ padding: '16px', flex: 1, display: 'flex', flexDirection: 'column' }}>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: 4, marginBottom: 10 }}>
+                        <Clock size={12} />
+                        {post.publish_at ? new Date(post.publish_at).toLocaleString() : 'Draft'}
+                      </div>
+
+                      {editingId === post.id ? (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                          <textarea
+                            className="form-textarea"
+                            rows={4}
+                            value={editText}
+                            onChange={e => setEditText(e.target.value)}
+                            style={{ fontSize: '0.88rem' }}
+                          />
+                          <div className="form-group">
+                            <label className="form-label" style={{ fontSize: '0.75rem' }}>Schedule At</label>
+                            <input type="datetime-local" className="form-input" value={editPublishAt} onChange={e => setEditPublishAt(e.target.value)} />
                           </div>
-                          <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: 4 }}>
-                            <Clock size={12} />
-                            {post.publish_at ? new Date(post.publish_at).toLocaleString() : 'Not scheduled'}
+                          <div style={{ display: 'flex', gap: 8 }}>
+                            <button className="btn btn-secondary btn-sm" style={{ flex: 1 }} onClick={() => setEditingId(null)}>Cancel</button>
+                            <button className="btn btn-primary btn-sm" style={{ flex: 1 }} onClick={saveEdit}>Save</button>
                           </div>
                         </div>
+                      ) : (
+                        <>
+                          <p style={{ margin: 0, fontSize: '0.94rem', color: 'var(--color-text-primary)', lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                            {post.text || '—'}
+                          </p>
+                          
+                          {post.product_notes && (
+                            <div style={{ marginTop: 12, padding: '8px 12px', background: 'var(--color-bg-warm)', borderRadius: 8, fontSize: '0.82rem', color: 'var(--color-text-secondary)', display: 'flex', gap: 6 }}>
+                              <Lightbulb size={14} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />
+                              <span style={{ fontStyle: 'italic' }}>{post.product_notes}</span>
+                            </div>
+                          )}
 
-                        {editingId === post.id ? (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                            <textarea
-                              className="form-textarea"
-                              rows={3}
-                              value={editText}
-                              onChange={e => setEditText(e.target.value)}
-                              style={{ fontSize: '0.88rem' }}
-                            />
-                            <div className="form-row">
-                              <div className="form-group">
-                                <label className="form-label" style={{ fontSize: '0.75rem' }}>Schedule At</label>
-                                <input type="datetime-local" className="form-input" value={editPublishAt} onChange={e => setEditPublishAt(e.target.value)} />
-                              </div>
-                              <div className="form-group">
-                                <label className="form-label" style={{ fontSize: '0.75rem' }}>Product Notes</label>
-                                <input className="form-input" value={editProductNotes} onChange={e => setEditProductNotes(e.target.value)} placeholder="Offers/Pros..." />
-                              </div>
-                            </div>
-                            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-                              <button className="btn btn-secondary btn-sm" onClick={() => setEditingId(null)} disabled={updateMutation.isPending}>Cancel</button>
-                              <button className="btn btn-primary btn-sm" onClick={saveEdit} disabled={updateMutation.isPending}>
-                                {updateMutation.isPending ? <Loader2 size={12} className="spin" /> : <Save size={12} />} Save Changes
-                              </button>
-                            </div>
+                          <div style={{ marginTop: 'auto', paddingTop: 16, display: 'flex', justifyContent: 'flex-end', gap: 8, borderTop: '1px solid var(--color-border-light)' }}>
+                            <button className="btn-icon btn-ghost" onClick={() => startEdit(post)} title="Edit">
+                              <Pencil size={14} />
+                            </button>
+                            <button className="btn-icon btn-ghost" onClick={() => handleDelete(post.id)} title="Delete">
+                              <Trash2 size={14} style={{ color: 'var(--color-error)' }} />
+                            </button>
                           </div>
-                        ) : (
-                          <>
-                            <p style={{ margin: 0, fontSize: '0.94rem', color: 'var(--color-text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', lineHeight: 1.5 }}>
-                              {post.text || '—'}
-                            </p>
-                            {post.product_notes && (
-                              <div style={{ marginTop: 8, fontSize: '0.75rem', color: 'var(--color-text-muted)', display: 'flex', alignItems: 'flex-start', gap: 4 }}>
-                                <Lightbulb size={12} style={{ marginTop: 2, flexShrink: 0, color: 'var(--color-accent)' }} />
-                                <span style={{ fontStyle: 'italic' }}>Note: {post.product_notes}</span>
-                              </div>
-                            )}
-                            <div style={{ marginTop: 'auto', paddingTop: 12, display: 'flex', justifyContent: 'flex-end', gap: 4 }}>
-                              <button className="btn-icon btn-ghost" title="Edit" onClick={() => startEdit(post)}>
-                                <Pencil size={14} />
-                              </button>
-                              <button
-                                className="btn-icon btn-ghost" title="Delete"
-                                disabled={deleteMutation.isPending || updateMutation.isPending}
-                                onClick={() => handleDelete(post.id)}
-                              >
-                                <Trash2 size={14} style={{ color: 'var(--color-error)' }} />
-                              </button>
-                            </div>
-                          </>
-                        )}
-                      </div>
+                        </>
+                      )}
                     </div>
                   </div>
                 ))}
