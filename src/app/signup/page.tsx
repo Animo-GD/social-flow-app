@@ -133,8 +133,8 @@ function SignupContent() {
       <div style={{ width: '100%', maxWidth: 440 }}>
         {/* Brand */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, justifyContent: 'center', marginBottom: 32 }}>
-          <div style={{ width: 36, height: 36, background: 'var(--color-accent)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Zap size={20} color="#fff" />
+          <div style={{ width: 44, height: 44, position: 'relative' }}>
+            <img src="/logo.png" alt="SocialFlow" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
           </div>
           <span style={{ fontSize: '1.25rem', fontWeight: 700 }}>SocialFlow</span>
         </div>

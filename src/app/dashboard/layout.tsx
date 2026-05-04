@@ -56,7 +56,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           >
             <Menu size={18} />
           </button>
-          <span className="mobile-brand">SocialFlow</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <img src="/logo.png" alt="logo" width={24} height={24} style={{ objectFit: 'contain' }} />
+            <span className="mobile-brand">SocialFlow</span>
+          </div>
         </div>
         {children}
       </main>

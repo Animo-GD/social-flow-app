@@ -43,7 +43,7 @@ export default function Sidebar({ mobileOpen, onClose }: { mobileOpen?: boolean;
       {/* Brand */}
       <div className="sidebar-brand">
         <div className="sidebar-brand-icon">
-          <Image src="/socialflow-logo.svg" alt="SocialFlow logo" width={22} height={22} style={{ display: 'block' }} />
+          <img src="/logo.png" alt="SocialFlow logo" width={28} height={28} style={{ display: 'block', objectFit: 'contain' }} />
         </div>
         <span className="sidebar-brand-name">SocialFlow</span>
         <button className="mobile-close-btn" type="button" aria-label="Close menu" onClick={onClose}>
