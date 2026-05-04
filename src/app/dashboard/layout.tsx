@@ -58,7 +58,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           >
             <Menu size={18} />
           </button>
-          <Logo width={140} />
+          <Logo size={28} fontSize="1.1rem" />
         </div>
         {children}
       </main>

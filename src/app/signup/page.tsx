@@ -134,8 +134,8 @@ function SignupContent() {
       <div style={{ width: '100%', maxWidth: 440 }}>
         {/* Brand */}
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 32 }}>
-          <Logo width={240} />
-        </div>
+          <Logo size={44} fontSize="1.75rem" />
+         </div>
 
         <div className="card" style={{ padding: '2rem' }}>
           {step === 'form' ? (
