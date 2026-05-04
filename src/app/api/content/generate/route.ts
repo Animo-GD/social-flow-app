@@ -60,6 +60,19 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  // Fetch business profile to send to webhook for better context
+  const { data: businessProfile } = await supabase
+    .from('business')
+    .select('*')
+    .eq('user_id', user_id)
+    .single();
+
+  const enrichedPayload = {
+    ...payload,
+    user_id,
+    business_profile: businessProfile || null
+  };
+
   // 1. Create a pending job in Supabase so the frontend can poll it
   const { data: job, error: jobError } = await supabase
     .from('generation_jobs')
@@ -74,7 +87,7 @@ export async function POST(req: NextRequest) {
       const n8nRes = await fetch(webhookUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...payload, user_id }),
+        body: JSON.stringify({ ...enrichedPayload }),
       });
       const data = await n8nRes.json();
       return NextResponse.json({ sync: true, ...data });
@@ -89,7 +102,7 @@ export async function POST(req: NextRequest) {
   fetch(webhookUrl, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ ...payload, job_id: jobId, user_id }),
+    body: JSON.stringify({ ...enrichedPayload, job_id: jobId }),
   })
     .then(async (n8nRes) => {
       if (!n8nRes.ok) {
