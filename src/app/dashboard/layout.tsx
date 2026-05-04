@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Sidebar from '@/components/Sidebar';
-import { Menu } from 'lucide-react';
+import { Menu, Loader2 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import WelcomePopup from '@/components/WelcomePopup';
 import BusinessOnboarding from '@/components/BusinessOnboarding';
@@ -18,6 +18,23 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const showOnboarding = !isLoading && (!profile || !profile.name);
 
+  // 1. If we are still loading the business profile status, show a simple loader
+  // This prevents the dashboard from flickering before the onboarding overlay appears.
+  if (isLoading) {
+    return (
+      <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-bg)' }}>
+        <Loader2 size={40} className="animate-spin" style={{ color: 'var(--color-accent)' }} />
+      </div>
+    );
+  }
+
+  // 2. If onboarding is required, ONLY render the onboarding component.
+  // This completely hides the sidebar and main content until the profile is ready.
+  if (showOnboarding) {
+    return <BusinessOnboarding />;
+  }
+
+  // 3. Otherwise, render the full dashboard shell
   return (
     <div className="layout-shell">
       <Sidebar mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} />
@@ -37,13 +54,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {children}
       </main>
 
-      {/* 
-         Sequence: 
-         1. Business Onboarding (highest priority, blocks interaction)
-         2. Welcome Popup (only shows AFTER onboarding is done or if not needed)
-      */}
-      <BusinessOnboarding />
-      {!isLoading && !showOnboarding && <WelcomePopup />}
+      {/* The Welcome Popup shows AFTER onboarding is confirmed (since showOnboarding is now false) */}
+      <WelcomePopup />
     </div>
   );
 }
