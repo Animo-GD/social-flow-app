@@ -26,7 +26,8 @@ function StatusBadge({ status, t }: { status: Post['status']; t: (k: Translation
 }
 
 export default function PostsPage() {
-  const { t } = useLang();
+  const { t, lang } = useLang();
+  const isAr = lang === 'ar';
   const qc = useQueryClient();
 
   const [tab, setTab] = useState<'create' | 'scheduled'>('create');
@@ -259,6 +260,7 @@ export default function PostsPage() {
                   id="topic" className="form-input"
                   value={form.topic}
                   onChange={e => setForm(f => ({ ...f, topic: e.target.value }))}
+                  placeholder={isAr ? 'ماذا يدور في ذهنك؟ (مثال: فوائد الشاي الأخضر)' : "What's on your mind? (e.g. Benefits of Green Tea)"}
                   onKeyDown={e => e.key === 'Enter' && handleGenerate('generate_both')}
                 />
               </div>

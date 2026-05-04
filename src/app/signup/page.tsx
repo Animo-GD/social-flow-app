@@ -147,7 +147,7 @@ function SignupContent() {
                   className="form-input"
                   value={form.username}
                   onChange={e => set('username', e.target.value)}
-                  placeholder={isAr ? 'مثال: ahmed_smith' : 'e.g. alex_creative'}
+                  placeholder={isAr ? 'مثال: ahmed_smith@' : 'e.g. @alex_creative'}
                   required
                 />
                 <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: 4 }}>

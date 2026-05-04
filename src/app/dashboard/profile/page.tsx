@@ -240,7 +240,7 @@ function ProfileTab({ profile, refetch }: { profile: UserProfile; refetch: () =>
         <div className="form-row">
           <div className="form-group">
             <label className="form-label">{isAr ? 'اسم المستخدم' : 'Username'}</label>
-            <input className="form-input" value={username} onChange={e => setUsername(e.target.value)} placeholder="creative_mind_88" />
+            <input className="form-input" value={username} onChange={e => setUsername(e.target.value)} placeholder="@creative_mind_88" />
           </div>
           <div className="form-group">
             <label className="form-label">{isAr ? 'البريد الإلكتروني' : 'Email'}</label>
