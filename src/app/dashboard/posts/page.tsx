@@ -4,7 +4,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api, Post } from '@/lib/api';
 import dynamic from 'next/dynamic';
-import { Loader2, Sparkles, Calendar, Trash2, Clock, CheckCircle, XCircle, Image as ImageIcon, FileText, Pencil, Video, Save, Lightbulb, X } from 'lucide-react';
+import { Loader2, Sparkles, Calendar, Trash2, Clock, CheckCircle, XCircle, Image as ImageIcon, FileText, Video, Save, Lightbulb, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Toaster } from 'react-hot-toast';
 import { useLang } from '@/lib/LanguageContext';
@@ -672,7 +672,7 @@ export default function PostsPage() {
             ) : (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 20 }}>
                 {filtered.map(post => (
-                  <div key={post.id} className="card-flat" style={{ padding: 0, overflow: 'hidden', border: '1px solid var(--color-border)', borderRadius: 12, display: 'flex', flexDirection: 'column', transition: 'transform 0.2s ease, box-shadow 0.2s ease' }}>
+                  <div key={post.id} className="card-flat" onClick={() => startEdit(post)} style={{ padding: 0, overflow: 'hidden', border: '1px solid var(--color-border)', borderRadius: 12, display: 'flex', flexDirection: 'column', transition: 'transform 0.2s ease, box-shadow 0.2s ease', cursor: 'pointer' }} onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-3px)'; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 8px 24px rgba(0,0,0,0.12)'; }} onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.transform = ''; (e.currentTarget as HTMLDivElement).style.boxShadow = ''; }}>
                     {/* Image Preview (Gallery style) */}
                     <div style={{ position: 'relative', paddingTop: '56.25%', background: 'var(--color-bg-warm)', overflow: 'hidden' }}>
                       {post.image_url ? (
@@ -718,10 +718,7 @@ export default function PostsPage() {
                       )}
 
                       <div style={{ marginTop: 'auto', paddingTop: 16, display: 'flex', justifyContent: 'flex-end', gap: 8, borderTop: '1px solid var(--color-border-light)' }}>
-                        <button className="btn-icon btn-ghost" onClick={() => startEdit(post)} title="Edit">
-                          <Pencil size={14} />
-                        </button>
-                        <button className="btn-icon btn-ghost" onClick={() => handleDelete(post.id)} title="Delete">
+                        <button className="btn-icon btn-ghost" onClick={e => { e.stopPropagation(); handleDelete(post.id); }} title="Delete">
                           <Trash2 size={14} style={{ color: 'var(--color-error)' }} />
                         </button>
                       </div>
