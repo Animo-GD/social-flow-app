@@ -240,7 +240,7 @@ function ProfileTab({ profile, refetch }: { profile: UserProfile; refetch: () =>
         <div className="form-row">
           <div className="form-group">
             <label className="form-label">{isAr ? 'اسم المستخدم' : 'Username'}</label>
-            <input className="form-input" value={username} onChange={e => setUsername(e.target.value)} placeholder="your_username" />
+            <input className="form-input" value={username} onChange={e => setUsername(e.target.value)} placeholder="creative_mind_88" />
           </div>
           <div className="form-group">
             <label className="form-label">{isAr ? 'البريد الإلكتروني' : 'Email'}</label>
@@ -250,7 +250,7 @@ function ProfileTab({ profile, refetch }: { profile: UserProfile; refetch: () =>
         <div className="form-row">
           <div className="form-group">
             <label className="form-label">{isAr ? 'رقم الهاتف' : 'Phone Number'}</label>
-            <input className="form-input" value={phone} onChange={e => setPhone(e.target.value)} placeholder="+1 555 000 0000" type="tel" />
+            <input className="form-input" value={phone} onChange={e => setPhone(e.target.value)} placeholder="+20 123 456 7890" type="tel" />
           </div>
           <div className="form-group">
             <label className="form-label">{isAr ? 'اللغة المفضلة' : 'Preferred Language'}</label>

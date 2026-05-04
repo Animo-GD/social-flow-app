@@ -13,7 +13,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   // We need to know if onboarding is needed to decide when to show the welcome popup
   const { data: profile, isLoading } = useQuery({
     queryKey: ['business'],
-    queryFn: () => fetch('/api/business').then(r => r.json()),
+    queryFn: async () => {
+      const res = await fetch('/api/business');
+      if (res.status === 401) {
+        window.location.href = '/login';
+        return null;
+      }
+      return res.json();
+    },
   });
 
   const showOnboarding = !isLoading && (!profile || !profile.name);

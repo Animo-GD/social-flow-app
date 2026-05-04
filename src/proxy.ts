@@ -24,7 +24,11 @@ export default async function proxy(req: NextRequest) {
   // Verify session cookie
   const token = req.cookies.get('sf_session')?.value;
   if (!token) {
-    return NextResponse.redirect(new URL('/login', req.url));
+    const res = NextResponse.redirect(new URL('/login', req.url));
+    res.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.headers.set('Pragma', 'no-cache');
+    res.headers.set('Expires', '0');
+    return res;
   }
 
   try {
@@ -33,6 +37,9 @@ export default async function proxy(req: NextRequest) {
   } catch {
     const res = NextResponse.redirect(new URL('/login', req.url));
     res.cookies.delete('sf_session');
+    res.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.headers.set('Pragma', 'no-cache');
+    res.headers.set('Expires', '0');
     return res;
   }
 }

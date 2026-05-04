@@ -105,7 +105,7 @@ export default function BusinessOnboarding() {
               className="onboard-input" 
               value={form.tagline} 
               onChange={e => set('tagline', e.target.value)}
-              placeholder={isAr ? 'جملة تعبيرية قصيرة' : 'Your catchy one-liner'}
+              placeholder={isAr ? 'جملة تعبيرية قصيرة (مثال: نبتكر لنرتقي)' : 'e.g. Innovating for a better future'}
               onKeyDown={e => e.key === 'Enter' && form.name && form.industry && nextStep()}
             />
           </div>
@@ -127,8 +127,8 @@ export default function BusinessOnboarding() {
             value={form.description} 
             onChange={e => set('description', e.target.value)}
             placeholder={isAr 
-              ? 'نحن نقدم خدمات التسويق الرقمي للشركات الصغيرة ونتميز بالسرعة والأسعار التنافسية...' 
-              : 'We provide digital marketing services for small businesses and we stand out with our speed...'}
+              ? 'نحن عيادة أسنان متخصصة في تجميل وزراعة الأسنان، نستخدم أحدث التقنيات لضمان راحة المرضى...' 
+              : 'We are a boutique coffee shop specialized in organic beans and artisanal roasting...'}
           />
           <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginTop: '8px' }}>
             {isAr ? 'اكتب 10 أحرف على الأقل.' : 'Write at least 10 characters.'}

@@ -147,7 +147,7 @@ function SignupContent() {
                   className="form-input"
                   value={form.username}
                   onChange={e => set('username', e.target.value)}
-                  placeholder={isAr ? 'مثال: ahmed_93' : 'e.g. john_doe'}
+                  placeholder={isAr ? 'مثال: ahmed_smith' : 'e.g. alex_creative'}
                   required
                 />
                 <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: 4 }}>
@@ -162,7 +162,7 @@ function SignupContent() {
                   type="email"
                   value={form.email}
                   onChange={e => set('email', e.target.value)}
-                  placeholder="you@example.com"
+                  placeholder="sara.jones@outlook.com"
                   required
                 />
               </div>
@@ -196,7 +196,7 @@ function SignupContent() {
                   type="tel"
                   value={form.phone}
                   onChange={e => set('phone', e.target.value)}
-                  placeholder="+1 555 000 0000"
+                  placeholder="+20 123 456 7890"
                 />
               </div>
 
