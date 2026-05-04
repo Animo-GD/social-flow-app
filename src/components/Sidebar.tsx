@@ -42,7 +42,7 @@ export default function Sidebar({ mobileOpen, onClose }: { mobileOpen?: boolean;
   return (
     <aside className={`sidebar${mobileOpen ? ' mobile-open' : ''}`}>
       {/* Brand */}
-      <div className="sidebar-brand">
+      <div className="sidebar-brand" style={{ padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Logo width={160} />
         <button className="mobile-close-btn" type="button" aria-label="Close menu" onClick={onClose}>
           <X size={18} />

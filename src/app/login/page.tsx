@@ -53,7 +53,7 @@ export default function LoginPage() {
       <div style={{ width: '100%', maxWidth: 400 }}>
         {/* Brand */}
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 32 }}>
-          <Logo width={200} />
+          <Logo width={240} />
         </div>
 
         <div className="card" style={{ padding: '2rem' }}>
