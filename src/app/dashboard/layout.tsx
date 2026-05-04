@@ -3,11 +3,20 @@
 import { useState } from 'react';
 import Sidebar from '@/components/Sidebar';
 import { Menu } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 import WelcomePopup from '@/components/WelcomePopup';
 import BusinessOnboarding from '@/components/BusinessOnboarding';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  // We need to know if onboarding is needed to decide when to show the welcome popup
+  const { data: profile, isLoading } = useQuery({
+    queryKey: ['business'],
+    queryFn: () => fetch('/api/business').then(r => r.json()),
+  });
+
+  const showOnboarding = !isLoading && (!profile || !profile.name);
 
   return (
     <div className="layout-shell">
@@ -27,8 +36,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
         {children}
       </main>
-      <WelcomePopup />
+
+      {/* 
+         Sequence: 
+         1. Business Onboarding (highest priority, blocks interaction)
+         2. Welcome Popup (only shows AFTER onboarding is done or if not needed)
+      */}
       <BusinessOnboarding />
+      {!showOnboarding && <WelcomePopup />}
     </div>
   );
 }
