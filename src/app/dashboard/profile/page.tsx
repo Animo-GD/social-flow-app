@@ -52,7 +52,7 @@ interface ExamplePost {
 
 interface BusinessProfile {
   name: string; tagline: string; description: string; industry: string;
-  website: string; target_audience: string; audience_age: string;
+  website: string; websites: string[]; target_audience: string; audience_age: string;
   audience_location: string; brand_voice: string; brand_values: string[];
   primary_language: string; content_style: string; posting_frequency: string;
   preferred_platforms: string[]; example_posts: ExamplePost[];
@@ -61,7 +61,7 @@ interface BusinessProfile {
 }
 
 const EMPTY_BIZ: BusinessProfile = {
-  name: '', tagline: '', description: '', industry: '', website: '',
+  name: '', tagline: '', description: '', industry: '', website: '', websites: [],
   target_audience: '', audience_age: '', audience_location: '',
   brand_voice: 'professional', brand_values: [], primary_language: 'ar',
   content_style: '', posting_frequency: '3x per week', preferred_platforms: [],
@@ -647,10 +647,16 @@ function BusinessTab() {
             </select>
           </div>
           <div className="form-group">
-            <label className="form-label">{isAr ? 'الموقع الإلكتروني' : 'Website'}</label>
+            <label className="form-label">{isAr ? 'الموقع الرئيسي' : 'Primary Website'}</label>
             <input className="form-input" type="url" value={form.website} onChange={e => set('website', e.target.value)} placeholder="https://example.com" />
           </div>
         </div>
+        <TagInput 
+          label={isAr ? 'مواقع إضافية أو وسائل التواصل' : 'Additional Websites / Social Media'} 
+          values={form.websites || []} 
+          onChange={v => set('websites', v)} 
+          placeholder="https://facebook.com/yourpage"
+        />
         <div className="form-group">
           <label className="form-label">{isAr ? 'وصف العمل' : 'Business Description'}</label>
           <textarea className="form-textarea" rows={3} value={form.description} onChange={e => set('description', e.target.value)} />
