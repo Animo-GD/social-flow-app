@@ -255,28 +255,54 @@ export default function GeneratingCard({ jobId, onComplete, onError, actionType 
 
   useEffect(() => {
     let alive = true;
+    let postCheckRetries = 0;
+    const MAX_POST_RETRIES = 10;
+
     async function poll() {
       while (alive) {
         try {
-          const res  = await fetch(`/api/content/status/${jobId}`);
+          const res  = await fetch(`/api/content/status/${jobId}?t=${Date.now()}`);
           if (res.ok) {
             const data = await res.json();
+            
             if (data.status === 'completed') {
-              if (!data.result || (!data.result.text && !data.result.image_url && !data.result.video_url)) {
-                const freshPosts = await api.getPosts().catch(() => []);
-                const latest = freshPosts.find(p => !!p.text || !!p.image_url || !!p.video_url);
-                if (latest && latest.status !== null) {
-                  onCompleteRef.current({ text: latest.text || '', image_url: latest.image_url || undefined, video_url: latest.video_url || undefined });
-                  break;
-                }
-              } else {
-                onCompleteRef.current(data.result ?? {});
+              const hasResult = data.result && (data.result.text || data.result.image_url || data.result.video_url);
+              
+              if (hasResult) {
+                onCompleteRef.current(data.result);
                 break;
+              } else {
+                // Job completed but result field is empty — n8n might have updated the posts table instead
+                const freshPosts = await api.getPosts().catch(() => []);
+                // Look for the most recent post (api.getPosts is sorted by created_at DESC)
+                const latest = freshPosts[0];
+                
+                if (latest && (!!latest.text || !!latest.image_url || !!latest.video_url)) {
+                  onCompleteRef.current({ 
+                    text: latest.text || '', 
+                    image_url: latest.image_url || undefined, 
+                    video_url: latest.video_url || undefined 
+                  });
+                  break;
+                } else {
+                  postCheckRetries++;
+                  if (postCheckRetries >= MAX_POST_RETRIES) {
+                    // Give up waiting for a specific post and just finish with empty if possible
+                    onCompleteRef.current(data.result || { text: '' });
+                    break;
+                  }
+                  // Continue polling...
+                }
               }
             }
-            if (data.status === 'failed') { onErrorRef.current(data.error_msg || 'Generation failed'); break; }
+            if (data.status === 'failed') { 
+              onErrorRef.current(data.error_msg || 'Generation failed'); 
+              break; 
+            }
           }
-        } catch { /* ignore */ }
+        } catch (err) {
+          console.error('Polling error:', err);
+        }
         await new Promise(r => setTimeout(r, POLL_MS));
       }
     }

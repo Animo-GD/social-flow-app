@@ -6,7 +6,7 @@ import { getSession } from '@/lib/session';
 export async function POST(req: NextRequest) {
   const body = await req.json();
   const rawActionType = body?.action_type;
-  const allowedActionTypes = new Set(['generate_text', 'generate_image', 'generate_both']);
+  const allowedActionTypes = new Set(['generate_text', 'generate_image', 'generate_both', 'generate_video']);
   const action_type = allowedActionTypes.has(rawActionType) ? rawActionType : 'generate_both';
   const payload = {
     ...body,
@@ -116,7 +116,7 @@ export async function POST(req: NextRequest) {
       }
       const result = await n8nRes.json();
       // If n8n responds synchronously with the result, mark it completed immediately
-      if (result.text || result.image_url) {
+      if (result.text || result.image_url || result.video_url) {
         await supabase
           .from('generation_jobs')
           .update({ status: 'completed', result, updated_at: new Date().toISOString() })
