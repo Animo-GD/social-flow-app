@@ -4,7 +4,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api, Post } from '@/lib/api';
 import dynamic from 'next/dynamic';
-import { Loader2, Sparkles, Calendar, Trash2, Clock, CheckCircle, XCircle, Image as ImageIcon, FileText, Pencil, Video, Instagram, Facebook, Linkedin, Twitter, Save, Lightbulb, Globe } from 'lucide-react';
+import { Loader2, Sparkles, Calendar, Trash2, Clock, CheckCircle, XCircle, Image as ImageIcon, FileText, Pencil, Video, Globe, Save, Lightbulb } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Toaster } from 'react-hot-toast';
 import { useLang } from '@/lib/LanguageContext';
@@ -25,13 +25,20 @@ function StatusBadge({ status, t }: { status: Post['status']; t: (k: Translation
   return <span className="badge"><Clock size={10} style={{ marginInlineEnd: 3 }} />{t('status_scheduled')}</span>;
 }
 
+const PLATFORM_STYLES: Record<string, { bg: string; color: string; label: string }> = {
+  instagram: { bg: '#fce4ec', color: '#c2185b', label: 'IG' },
+  facebook:  { bg: '#e3f2fd', color: '#1565c0', label: 'FB' },
+  linkedin:  { bg: '#e8f4fd', color: '#0a66c2', label: 'IN' },
+  x:         { bg: '#f3f3f3', color: '#000',     label: 'X'  },
+};
+
 function PlatformIcon({ platform }: { platform: string }) {
-  const size = 16;
-  if (platform === 'instagram') return <Instagram size={size} style={{ color: '#E4405F' }} />;
-  if (platform === 'facebook') return <Facebook size={size} style={{ color: '#1877F2' }} />;
-  if (platform === 'linkedin') return <Linkedin size={size} style={{ color: '#0A66C2' }} />;
-  if (platform === 'x') return <Twitter size={size} style={{ color: '#000000' }} />;
-  return <Globe size={size} />;
+  const s = PLATFORM_STYLES[platform] ?? { bg: 'var(--color-bg-warm)', color: 'var(--color-text-secondary)', label: platform.slice(0,2).toUpperCase() };
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, borderRadius: 8, background: s.bg, color: s.color, fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.02em' }}>
+      {s.label}
+    </span>
+  );
 }
 
 export default function PostsPage() {
