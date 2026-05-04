@@ -330,14 +330,15 @@ function CreditsTab({ initialCredits }: { initialCredits: number }) {
     queryFn: () => fetch('/api/credits/packages').then(r => r.json()),
   });
 
-  async function handleBuy(pkg: CreditPackage) {
-    setBuying(pkg.id);
+  async function handleConfirmPayment() {
+    if (!selectedPkg) return;
+    setBuying(selectedPkg.id);
     try {
       const endpoint = paymentMethod === 'moyasar' ? '/api/credits/checkout' : '/api/credits/checkout/paymob';
       const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ packageId: pkg.id }),
+        body: JSON.stringify({ packageId: selectedPkg.id }),
       });
       const data = await res.json();
       if (data.url) window.location.href = data.url;
@@ -360,29 +361,6 @@ function CreditsTab({ initialCredits }: { initialCredits: number }) {
         </div>
       )}
 
-      {/* Payment Method Selector */}
-      <div className="card" style={{ padding: '16px' }}>
-        <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--color-text-secondary)', marginBottom: '12px', textTransform: 'uppercase' }}>
-          {isAr ? 'طريقة الدفع المفضلة' : 'Preferred Payment Method'}
-        </div>
-        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-          <button 
-            className={`btn ${paymentMethod === 'paymob' ? 'btn-primary' : 'btn-secondary'}`}
-            onClick={() => setPaymentMethod('paymob')}
-            style={{ flex: 1, justifyContent: 'center' }}
-          >
-            🇪🇬 {isAr ? 'إنستا باي / فيزا (EGP)' : 'InstaPay / Card (EGP)'}
-          </button>
-          <button 
-            className={`btn ${paymentMethod === 'moyasar' ? 'btn-primary' : 'btn-secondary'}`}
-            onClick={() => setPaymentMethod('moyasar')}
-            style={{ flex: 1, justifyContent: 'center' }}
-          >
-            🇸🇦 {isAr ? 'مدى / فيزا (SAR)' : 'Mada / Visa (SAR)'}
-          </button>
-        </div>
-      </div>
-
       {/* Balance card */}
       <div className="card" style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
         <div style={{ width: 56, height: 56, background: 'rgba(0,117,222,0.1)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -400,6 +378,59 @@ function CreditsTab({ initialCredits }: { initialCredits: number }) {
           </div>
         </div>
       </div>
+
+      {/* Payment Selection Modal */}
+      {selectedPkg && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(0,0,0,0.5)', zIndex: 1000,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
+          backdropFilter: 'blur(4px)'
+        }}>
+          <div className="card" style={{ maxWidth: 400, width: '100%', position: 'relative', animation: 'popIn 0.3s ease' }}>
+            <button 
+              onClick={() => setSelectedPkg(null)}
+              style={{ position: 'absolute', top: 12, right: 12, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)' }}
+            >
+              <X size={20} />
+            </button>
+
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: 8, textAlign: 'center' }}>
+              {isAr ? 'اختر وسيلة الدفع' : 'Select Payment Method'}
+            </h3>
+            <p style={{ textAlign: 'center', color: 'var(--color-text-secondary)', fontSize: '0.9rem', marginBottom: 24 }}>
+              {isAr ? `أنت على وشك شراء حزمة ${selectedPkg.name}` : `You are buying the ${selectedPkg.name} package`}
+            </p>
+
+            <div style={{ display: 'grid', gap: 12, marginBottom: 24 }}>
+              <button 
+                className={`btn ${paymentMethod === 'paymob' ? 'btn-primary' : 'btn-secondary'}`}
+                onClick={() => setPaymentMethod('paymob')}
+                style={{ justifyContent: 'center', padding: '16px' }}
+              >
+                🇪🇬 {isAr ? 'إنستا باي / فيزا (EGP)' : 'InstaPay / Card (EGP)'}
+              </button>
+              <button 
+                className={`btn ${paymentMethod === 'moyasar' ? 'btn-primary' : 'btn-secondary'}`}
+                onClick={() => setPaymentMethod('moyasar')}
+                style={{ justifyContent: 'center', padding: '16px' }}
+              >
+                🇸🇦 {isAr ? 'مدى / فيزا (SAR)' : 'Mada / Visa (SAR)'}
+              </button>
+            </div>
+
+            <button 
+              className="btn btn-primary" 
+              style={{ width: '100%', justifyContent: 'center', padding: '12px' }}
+              onClick={handleConfirmPayment}
+              disabled={!!buying}
+            >
+              {buying ? <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /> : <CreditCard size={18} />}
+              {isAr ? 'استمرار للدفع' : 'Proceed to Payment'}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Packages */}
       <div>
@@ -419,8 +450,8 @@ function CreditsTab({ initialCredits }: { initialCredits: number }) {
               <div style={{ fontSize: '2.2rem', fontWeight: 700, color: 'var(--color-accent)', lineHeight: 1 }}>{pkg.credits.toLocaleString()}</div>
               <div style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', marginBottom: 12 }}>{isAr ? 'كريدت' : 'credits'}</div>
               <div style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: 16 }}>${pkg.price_usd}</div>
-              <button className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }} onClick={() => handleBuy(pkg)} disabled={!!buying}>
-                {buying === pkg.id ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <CreditCard size={14} />}
+              <button className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }} onClick={() => setSelectedPkg(pkg)} disabled={!!buying}>
+                <CreditCard size={14} />
                 {isAr ? 'شراء الآن' : 'Buy Now'}
               </button>
             </div>
