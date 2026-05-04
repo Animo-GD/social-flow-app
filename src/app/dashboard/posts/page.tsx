@@ -172,13 +172,20 @@ function EditModal({ post, onClose, onSave, editText, setEditText, editPublishAt
             />
           </div>
 
-          {/* Image */}
+          {/* Media */}
           {post.image_url && (
             // eslint-disable-next-line @next/next/no-img-element
             <img 
               src={post.image_url} 
               alt="Post Content" 
               style={{ width: '100%', display: 'block', maxHeight: 500, objectFit: 'contain', background: '#f0f2f5' }} 
+            />
+          )}
+          {post.video_url && (
+            <video 
+              src={post.video_url} 
+              controls
+              style={{ width: '100%', display: 'block', maxHeight: 500, objectFit: 'contain', background: '#000' }} 
             />
           )}
 
@@ -258,6 +265,7 @@ export default function PostsPage() {
 
   // Async generation state
   const [activeJobId, setActiveJobId] = useState<string | null>(null);
+  const [generatingActionType, setGeneratingActionType] = useState<'generate_text' | 'generate_image' | 'generate_both'>('generate_both');
 
   const { data: posts, isLoading: postsLoading } = useQuery({ queryKey: ['posts'], queryFn: api.getPosts });
 
@@ -290,18 +298,22 @@ export default function PostsPage() {
   });
 
   // ── Generation callbacks ───────────────────────────────────────────
-  const handleGenerationComplete = useCallback(async (result: { text: string; image_url?: string }) => {
+  const handleGenerationComplete = useCallback(async (result: { text: string; image_url?: string; video_url?: string }) => {
     setActiveJobId(null);
     setPreviewPostId(null);
 
-    if (result?.text || result?.image_url) {
+    if (result?.text || result?.image_url || result?.video_url) {
       setGenerated(result);
       setEditedText(result.text || '');
     } else {
       const freshPosts = await api.getPosts().catch(() => []);
-      const latestWithContent = freshPosts.find((p) => !!p.text || !!p.image_url);
+      const latestWithContent = freshPosts.find((p) => !!p.text || !!p.image_url || !!p.video_url);
       if (latestWithContent) {
-        setGenerated({ text: latestWithContent.text || '', image_url: latestWithContent.image_url || undefined });
+        setGenerated({ 
+          text: latestWithContent.text || '', 
+          image_url: latestWithContent.image_url || undefined,
+          video_url: latestWithContent.video_url || undefined
+        });
         setEditedText(latestWithContent.text || '');
         setPreviewPostId(latestWithContent.id);
         setScheduleAt(toDateTimeLocal(latestWithContent.publish_at));
@@ -318,8 +330,9 @@ export default function PostsPage() {
   }, [t]);
 
   // ── Start generation ───────────────────────────────────────────────
-  async function handleGenerate(action_type: 'generate_text' | 'generate_image' | 'generate_both') {
+  async function handleGenerate(action_type: 'generate_text' | 'generate_image' | 'generate_both' | 'generate_video') {
     if (!form.topic.trim()) { toast.error(t('toast_enter_topic')); return; }
+    setGeneratingActionType(action_type);
 
     try {
       let uploadedImageUrl = productImageUrl;
@@ -429,6 +442,9 @@ export default function PostsPage() {
     return true;
   }) ?? [];
 
+  const imagesCount = posts?.filter(p => p.image_url).length ?? 0;
+  const videosCount = posts?.filter(p => p.video_url).length ?? 0;
+
   const toneLabels: Record<string, string> = {
     formal: t('tone_formal'), casual: t('tone_casual'), sales: t('tone_sales'),
   };
@@ -477,9 +493,11 @@ export default function PostsPage() {
           </button>
           <button className={`tab-btn${tab === 'images' ? ' active' : ''}`} onClick={() => setTab('images')}>
             <ImageIcon size={14} style={{ marginInlineEnd: 6, verticalAlign: 'middle' }} />{isAr ? 'الصور' : 'Images'}
+            {imagesCount > 0 && <span className="badge" style={{ marginInlineStart: 8 }}>{imagesCount}</span>}
           </button>
           <button className={`tab-btn${tab === 'videos' ? ' active' : ''}`} onClick={() => setTab('videos')}>
             <Video size={14} style={{ marginInlineEnd: 6, verticalAlign: 'middle' }} />{isAr ? 'الفيديوهات' : 'Videos'}
+            {videosCount > 0 && <span className="badge" style={{ marginInlineStart: 8 }}>{videosCount}</span>}
           </button>
         </div>
 
@@ -558,7 +576,7 @@ export default function PostsPage() {
                   onClick={() => handleGenerate('generate_text')}
                   disabled={!!activeJobId}
                 >
-                  {activeJobId ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <FileText size={14} />}
+                  {activeJobId && generatingActionType === 'generate_text' ? <Loader2 size={14} className="spin" /> : <FileText size={14} />}
                   {t('btn_generate_text')}
                 </button>
                 <button
@@ -566,14 +584,24 @@ export default function PostsPage() {
                   onClick={() => handleGenerate('generate_image')}
                   disabled={!!activeJobId}
                 >
-                  <ImageIcon size={14} /> {t('btn_generate_image')}
+                  {activeJobId && generatingActionType === 'generate_image' ? <Loader2 size={14} className="spin" /> : <ImageIcon size={14} />}
+                  {t('btn_generate_image')}
                 </button>
                 <button
                   className="btn btn-secondary"
                   onClick={() => handleGenerate('generate_both')}
                   disabled={!!activeJobId}
                 >
-                  <Sparkles size={14} /> {t('btn_generate_both')}
+                  {activeJobId && generatingActionType === 'generate_both' ? <Loader2 size={14} className="spin" /> : <Sparkles size={14} />}
+                  {t('btn_generate_both')}
+                </button>
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => handleGenerate('generate_video')}
+                  disabled={!!activeJobId}
+                >
+                  {activeJobId && generatingActionType === 'generate_video' ? <Loader2 size={14} className="spin" /> : <Video size={14} />}
+                  {isAr ? 'توليد فيديو' : 'Generate Video'}
                 </button>
               </div>
             </div>
@@ -581,40 +609,86 @@ export default function PostsPage() {
             {/* ── Preview / Generating Card ── */}
             <div>
               {activeJobId ? (
-                // Generating — show Remotion animation inline
                 <GeneratingCard
                   jobId={activeJobId}
                   onComplete={handleGenerationComplete}
                   onError={handleGenerationError}
+                  actionType={generatingActionType}
                 />
               ) : generated ? (
-                // Done — show editable result
-                <div className="content-preview">
-                  <div className="preview-header">
-                    <span>{t('preview_label')} — {form.platform}</span>
-                    <span className="badge badge-gray" style={{ textTransform: 'capitalize' }}>{toneLabels[form.tone]}</span>
+                // Done — Social Media Post Card Preview
+                <div style={{
+                  border: '1px solid var(--color-border)',
+                  borderRadius: 16,
+                  overflow: 'hidden',
+                  background: 'var(--color-bg)',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+                  animation: 'slideUp 0.3s cubic-bezier(0.16,1,0.3,1)',
+                }}>
+                  {/* Platform Header */}
+                  <div style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--color-border-light)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <div style={{
+                        width: 40, height: 40, borderRadius: '50%',
+                        background: PLATFORM_STYLES[form.platform]?.bg || 'var(--color-bg-warm)',
+                        color: PLATFORM_STYLES[form.platform]?.color || 'var(--color-text-secondary)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        border: '1px solid var(--color-border)',
+                      }}>
+                        <PlatformLogo platform={form.platform} size={18} />
+                      </div>
+                      <div>
+                        <p style={{ margin: 0, fontWeight: 700, fontSize: '0.92rem', color: 'var(--color-text-primary)', textTransform: 'capitalize' }}>{form.platform}</p>
+                        <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Draft · Just now</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => { setGenerated(null); setPreviewPostId(null); }}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)', padding: 4 }}
+                    >
+                      <X size={16} />
+                    </button>
                   </div>
-                  {generated.image_url && (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={generated.image_url} alt="Generated" className="preview-image" />
-                  )}
-                  <div className="preview-body">
+
+                  {/* Post text - editable */}
+                  <div style={{ padding: '14px 16px' }}>
                     <textarea
                       ref={previewTextareaRef}
-                      className="form-textarea"
                       value={editedText}
                       onChange={e => setEditedText(e.target.value)}
-                      rows={1}
-                      style={{ marginBottom: 16, resize: 'none', overflow: 'hidden' }}
+                      rows={4}
+                      placeholder="Post content…"
+                      style={{
+                        width: '100%', border: 'none', resize: 'none', outline: 'none',
+                        background: 'transparent',
+                        color: 'var(--color-text-primary)',
+                        fontSize: editedText.length < 120 ? '1.05rem' : '0.95rem',
+                        lineHeight: 1.6, fontFamily: 'inherit',
+                        overflow: 'hidden',
+                      }}
                     />
-                    <hr className="divider" />
-                    <div className="form-group">
-                      <label className="form-label" htmlFor="schedule-at">{t('label_schedule_datetime')} (Optional)</label>
-                      <input
-                        id="schedule-at" type="datetime-local" className="form-input"
-                        value={scheduleAt} onChange={e => setScheduleAt(e.target.value)}
-                      />
-                    </div>
+                  </div>
+
+                  {/* Generated Image */}
+                  {generated.image_url && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={generated.image_url}
+                      alt="Generated"
+                      style={{ width: '100%', display: 'block', maxHeight: 340, objectFit: 'cover' }}
+                    />
+                  )}
+
+                  {/* Schedule & Save footer */}
+                  <div style={{ padding: '14px 16px', borderTop: '1px solid var(--color-border-light)', display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    <input
+                      type="datetime-local"
+                      className="form-input"
+                      value={scheduleAt}
+                      onChange={e => setScheduleAt(e.target.value)}
+                      placeholder={t('label_schedule_datetime')}
+                      style={{ fontSize: '0.88rem' }}
+                    />
                     <button
                       className="btn btn-primary"
                       onClick={handleSchedule}
@@ -789,10 +863,54 @@ export default function PostsPage() {
 
         {/* ── Videos tab ── */}
         {tab === 'videos' && (
-          <div className="empty-state" style={{ minHeight: 400 }}>
-            <Video size={48} style={{ opacity: 0.3 }} />
-            <p className="text-body-med" style={{ color: 'var(--color-text-secondary)' }}>{isAr ? 'مكتبة الفيديوهات' : 'Video Library'}</p>
-            <p style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>{isAr ? 'ستظهر هنا الفيديوهات المولدة بالذكاء الاصطناعي' : 'AI-generated videos will appear here'}</p>
+          <div>
+            {postsLoading ? (
+               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 16 }}>
+                 {[1,2,3,4,5,6].map(i => <div key={i} className="skeleton" style={{ paddingTop: '100%', borderRadius: 12 }} />)}
+               </div>
+            ) : posts?.filter(p => p.video_url).length === 0 ? (
+              <div className="empty-state" style={{ minHeight: 400 }}>
+                <Video size={48} style={{ opacity: 0.3 }} />
+                <p className="text-body-med" style={{ color: 'var(--color-text-secondary)' }}>{isAr ? 'مكتبة الفيديوهات' : 'Video Library'}</p>
+                <p style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>{isAr ? 'ستظهر هنا الفيديوهات المولدة بالذكاء الاصطناعي' : 'AI-generated videos will appear here'}</p>
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 16 }}>
+                {posts?.filter(p => p.video_url).map(post => (
+                  <div 
+                    key={post.id} 
+                    onClick={() => startEdit(post)}
+                    className="gallery-item"
+                    style={{ 
+                      position: 'relative', 
+                      paddingTop: '100%', 
+                      borderRadius: 12, 
+                      overflow: 'hidden', 
+                      cursor: 'pointer',
+                      border: '1px solid var(--color-border)',
+                      transition: 'transform 0.2s ease',
+                      background: '#000'
+                    }}
+                  >
+                    <video 
+                      src={post.video_url} 
+                      style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }} 
+                    />
+                    <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', color: '#fff', opacity: 0.8 }}>
+                      <Video size={32} />
+                    </div>
+                    <div style={{ 
+                      position: 'absolute', bottom: 8, right: 8, 
+                      background: 'rgba(255,255,255,0.9)', padding: '4px 6px', 
+                      borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      color: PLATFORM_STYLES[post.platform]?.color || '#000'
+                    }}>
+                      <PlatformLogo platform={post.platform} size={12} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>

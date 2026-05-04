@@ -44,6 +44,7 @@ export interface Post {
   created_at?: string;
   text?: string;
   image_url?: string;
+  video_url?: string;
   product_notes?: string;
 }
 
