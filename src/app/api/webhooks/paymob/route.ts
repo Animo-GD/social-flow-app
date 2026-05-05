@@ -84,7 +84,7 @@ export async function POST(req: NextRequest) {
             user_id: user.id,
             amount: creditsToAdd,
             type: 'purchase',
-            description: `Purchased ${creditsToAdd} credits via Paymob (InstaPay/Card)`,
+            description: `Purchased ${creditsToAdd} credits via Paymob`,
             stripe_session_id: `paymob_${paymentId}`,
           });
         }

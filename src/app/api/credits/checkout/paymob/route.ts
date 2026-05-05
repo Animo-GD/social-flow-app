@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
     const paymentKey = await createPaymobPaymentKey({
       amount_cents: amountInCents,
       package_name: `${pkg.name} — ${pkg.credits} Credits`,
-      integration_id: parseInt(process.env.PAYMOB_INSTAPAY_INTEGRATION_ID || '0', 10),
+      integration_id: parseInt(process.env.PAYMOB_INTEGRATION_ID || '0', 10),
       user: {
         id: session.id,
         email: session.email,

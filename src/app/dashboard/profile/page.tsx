@@ -315,11 +315,14 @@ function CreditsTab({ initialCredits }: { initialCredits: number }) {
   const { lang } = useLang();
   const isAr = lang === 'ar';
   const [buying, setBuying] = useState<string | null>(null);
-  const [selectedPkg, setSelectedPkg] = useState<CreditPackage | null>(null);
-  const [paymentMethod, setPaymentMethod] = useState<'moyasar' | 'paymob'>('paymob');
   const searchParams = useSearchParams();
   const success = searchParams.get('success');
   const cancelled = searchParams.get('cancelled');
+  const [showSuccessModal, setShowSuccessModal] = useState(!!success);
+
+  useEffect(() => {
+    if (success) setShowSuccessModal(true);
+  }, [success]);
 
   const { data: balance, refetch } = useQuery({
     queryKey: ['credits-balance'],
@@ -332,29 +335,54 @@ function CreditsTab({ initialCredits }: { initialCredits: number }) {
     queryFn: () => fetch('/api/credits/packages').then(r => r.json()),
   });
 
-  async function handleConfirmPayment() {
-    if (!selectedPkg) return;
-    setBuying(selectedPkg.id);
+  async function handleConfirmPayment(pkg: CreditPackage) {
+    setBuying(pkg.id);
     try {
-      const endpoint = paymentMethod === 'moyasar' ? '/api/credits/checkout' : '/api/credits/checkout/paymob';
+      const endpoint = '/api/credits/checkout/paymob';
       const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ packageId: selectedPkg.id }),
+        body: JSON.stringify({ packageId: pkg.id }),
       });
       const data = await res.json();
       if (data.url) window.location.href = data.url;
       else toast.error(data.error || 'Checkout failed');
     } catch { toast.error('Failed to initiate checkout'); }
     setBuying(null);
-    setSelectedPkg(null);
   }
 
   return (
     <div style={{ display: 'grid', gap: 24 }}>
-      {success && (
-        <div style={{ background: '#ecfdf5', border: '1px solid #6ee7b7', borderRadius: 8, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 10, color: '#065f46' }}>
-          <CheckCircle size={18} /> {isAr ? 'تم شراء الكريدت بنجاح!' : 'Credits purchased successfully!'}
+      {showSuccessModal && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(0,0,0,0.5)', zIndex: 1000,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
+          backdropFilter: 'blur(4px)'
+        }}>
+          <div className="card" style={{ maxWidth: 400, width: '100%', position: 'relative', animation: 'popIn 0.3s ease', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 16 }}>
+            <div style={{ width: 64, height: 64, background: '#ecfdf5', color: '#10b981', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
+              <CheckCircle size={32} />
+            </div>
+            <h3 style={{ fontSize: '1.5rem', fontWeight: 700 }}>
+              {isAr ? 'شكرًا لك!' : 'Thank you!'}
+            </h3>
+            <p style={{ color: 'var(--color-text-secondary)', fontSize: '1rem', lineHeight: 1.5 }}>
+              {isAr ? 'تمت إضافة الكريدت إلى حسابك بنجاح.' : 'Number of credits has been added successfully.'}
+            </p>
+            <button 
+              className="btn btn-primary" 
+              style={{ width: '100%', justifyContent: 'center', marginTop: 8 }}
+              onClick={() => {
+                setShowSuccessModal(false);
+                const url = new URL(window.location.href);
+                url.searchParams.delete('success');
+                window.history.replaceState({}, '', url);
+              }}
+            >
+              {isAr ? 'الاستمرار' : 'Continue'}
+            </button>
+          </div>
         </div>
       )}
       {cancelled && (
@@ -381,59 +409,6 @@ function CreditsTab({ initialCredits }: { initialCredits: number }) {
         </div>
       </div>
 
-      {/* Payment Selection Modal */}
-      {selectedPkg && (
-        <div style={{
-          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-          background: 'rgba(0,0,0,0.5)', zIndex: 1000,
-          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
-          backdropFilter: 'blur(4px)'
-        }}>
-          <div className="card" style={{ maxWidth: 400, width: '100%', position: 'relative', animation: 'popIn 0.3s ease' }}>
-            <button 
-              onClick={() => setSelectedPkg(null)}
-              style={{ position: 'absolute', top: 12, right: 12, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)' }}
-            >
-              <X size={20} />
-            </button>
-
-            <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: 8, textAlign: 'center' }}>
-              {isAr ? 'اختر وسيلة الدفع' : 'Select Payment Method'}
-            </h3>
-            <p style={{ textAlign: 'center', color: 'var(--color-text-secondary)', fontSize: '0.9rem', marginBottom: 24 }}>
-              {isAr ? `أنت على وشك شراء حزمة ${selectedPkg.name}` : `You are buying the ${selectedPkg.name} package`}
-            </p>
-
-            <div style={{ display: 'grid', gap: 12, marginBottom: 24 }}>
-              <button 
-                className={`btn ${paymentMethod === 'paymob' ? 'btn-primary' : 'btn-secondary'}`}
-                onClick={() => setPaymentMethod('paymob')}
-                style={{ justifyContent: 'center', padding: '16px' }}
-              >
-                🇪🇬 {isAr ? 'إنستا باي / فيزا (EGP)' : 'InstaPay / Card (EGP)'}
-              </button>
-              <button 
-                className={`btn ${paymentMethod === 'moyasar' ? 'btn-primary' : 'btn-secondary'}`}
-                onClick={() => setPaymentMethod('moyasar')}
-                style={{ justifyContent: 'center', padding: '16px' }}
-              >
-                🇸🇦 {isAr ? 'مدى / فيزا (SAR)' : 'Mada / Visa (SAR)'}
-              </button>
-            </div>
-
-            <button 
-              className="btn btn-primary" 
-              style={{ width: '100%', justifyContent: 'center', padding: '12px' }}
-              onClick={handleConfirmPayment}
-              disabled={!!buying}
-            >
-              {buying ? <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /> : <CreditCard size={18} />}
-              {isAr ? 'استمرار للدفع' : 'Proceed to Payment'}
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* Packages */}
       <div>
         <h2 className="text-subhead" style={{ marginBottom: 16 }}>
@@ -451,9 +426,9 @@ function CreditsTab({ initialCredits }: { initialCredits: number }) {
               <div style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: 4 }}>{pkg.name}</div>
               <div style={{ fontSize: '2.2rem', fontWeight: 700, color: 'var(--color-accent)', lineHeight: 1 }}>{pkg.credits.toLocaleString()}</div>
               <div style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', marginBottom: 12 }}>{isAr ? 'كريدت' : 'credits'}</div>
-              <div style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: 16 }}>${pkg.price_usd}</div>
-              <button className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }} onClick={() => setSelectedPkg(pkg)} disabled={!!buying}>
-                <CreditCard size={14} />
+              <div style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: 16 }}>{pkg.price_usd * 50} {isAr ? 'ج.م' : 'EGP'}</div>
+              <button className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }} onClick={() => handleConfirmPayment(pkg)} disabled={!!buying}>
+                {buying === pkg.id ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <CreditCard size={14} />}
                 {isAr ? 'شراء الآن' : 'Buy Now'}
               </button>
             </div>

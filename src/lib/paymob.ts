@@ -1,5 +1,5 @@
 /**
- * Paymob client for Egyptian payments (InstaPay, Cards, Wallets)
+ * Paymob client for Egyptian payments (Cards, Wallets)
  * Docs: https://docs.paymob.com/
  */
 
