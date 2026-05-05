@@ -13,7 +13,7 @@ const STEP_MS = 1800;
 
 interface Props {
   jobId: string;
-  onComplete: (result: { text: string; image_url?: string; video_url?: string }) => void;
+  onComplete: (result: { text: string; image_url?: string; video_url?: string; id?: string }) => void;
   onError: (msg: string) => void;
   actionType?: 'generate_text' | 'generate_image' | 'generate_both' | 'generate_video';
 }
@@ -279,6 +279,7 @@ export default function GeneratingCard({ jobId, onComplete, onError, actionType 
                 
                 if (latest && (!!latest.text || !!latest.image_url || !!latest.video_url)) {
                   onCompleteRef.current({ 
+                    id: latest.id,
                     text: latest.text || '', 
                     image_url: latest.image_url || undefined, 
                     video_url: latest.video_url || undefined 

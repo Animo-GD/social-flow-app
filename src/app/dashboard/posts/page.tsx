@@ -292,15 +292,19 @@ export default function PostsPage() {
     onSuccess: () => {
       toast.success('Post updated');
       setEditingPost(null);
+      setPreviewPostId(null);
+      setGenerated(null); 
+      setScheduleAt(''); 
+      if (tab === 'create') setTab('posts');
       qc.invalidateQueries({ queryKey: ['posts'] });
     },
     onError: () => toast.error('Update failed'),
   });
 
   // ── Generation callbacks ───────────────────────────────────────────
-  const handleGenerationComplete = useCallback(async (result: { text: string; image_url?: string; video_url?: string }) => {
+  const handleGenerationComplete = useCallback(async (result: { text: string; image_url?: string; video_url?: string; id?: string }) => {
     setActiveJobId(null);
-    setPreviewPostId(null);
+    setPreviewPostId(result.id || null);
 
     if (result?.text || result?.image_url || result?.video_url) {
       setGenerated(result);
@@ -374,7 +378,7 @@ export default function PostsPage() {
         // n8n responded synchronously (no generation_jobs table)
         setGenerated(data);
         setEditedText(data.text);
-        setPreviewPostId(null);
+        setPreviewPostId(data.id || null);
         toast.success(t('toast_content_generated'));
       } else {
         // Async: show overlay and poll
@@ -692,10 +696,10 @@ export default function PostsPage() {
                     <button
                       className="btn btn-primary"
                       onClick={handleSchedule}
-                      disabled={scheduleMutation.isPending}
+                      disabled={scheduleMutation.isPending || updateMutation.isPending}
                       style={{ width: '100%', justifyContent: 'center' }}
                     >
-                      {scheduleMutation.isPending
+                      {scheduleMutation.isPending || updateMutation.isPending
                         ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />
                         : <Calendar size={14} />
                       }
