@@ -3,13 +3,13 @@
  * Docs: https://docs.paymob.com/
  */
 
-const PAYMOB_BASE_URL = 'https://egypt.paymob.com/api';
+const PAYMOB_BASE_URL = 'https://accept.paymob.com/api';
 
 /**
  * Step 1: Authentication
  */
 async function authenticate() {
-  const apiKey = process.env.PAYMOB_API_KEY;
+  const apiKey = process.env.PAYMOB_API_KEY?.trim();
   if (!apiKey) throw new Error('PAYMOB_API_KEY is missing');
 
   const res = await fetch(`${PAYMOB_BASE_URL}/auth/tokens`, {
