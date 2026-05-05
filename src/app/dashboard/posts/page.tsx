@@ -4,7 +4,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api, Post } from '@/lib/api';
 import dynamic from 'next/dynamic';
-import { Loader2, Sparkles, Calendar, Trash2, Clock, CheckCircle, XCircle, Image as ImageIcon, FileText, Video, Save, Lightbulb, X } from 'lucide-react';
+import { Loader2, Sparkles, Calendar, Trash2, Clock, CheckCircle, XCircle, Image as ImageIcon, FileText, Video, Save, Lightbulb, X, Copy, Download, Upload, Trash } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Toaster } from 'react-hot-toast';
 import { useLang } from '@/lib/LanguageContext';
@@ -76,11 +76,73 @@ interface EditModalProps {
   setEditPublishAt: (v: string) => void;
   editProductNotes: string;
   setEditProductNotes: (v: string) => void;
+  editImageUrl: string | null;
+  setEditImageUrl: (v: string | null) => void;
   isPending: boolean;
 }
 
-function EditModal({ post, onClose, onSave, editText, setEditText, editPublishAt, setEditPublishAt, editProductNotes, setEditProductNotes, isPending }: EditModalProps) {
+function EditModal({ post, onClose, onSave, editText, setEditText, editPublishAt, setEditPublishAt, editProductNotes, setEditProductNotes, editImageUrl, setEditImageUrl, isPending }: EditModalProps) {
   const overlayRef = useRef<HTMLDivElement>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
+
+  const handleCopyText = () => {
+    navigator.clipboard.writeText(editText);
+    toast.success('Text copied to clipboard!');
+  };
+
+  const handleCopyImage = async () => {
+    if (!editImageUrl) return;
+    try {
+      const response = await fetch(editImageUrl);
+      const blob = await response.blob();
+      await navigator.clipboard.write([
+        new ClipboardItem({ [blob.type]: blob })
+      ]);
+      toast.success('Image copied to clipboard!');
+    } catch (err) {
+      toast.error('Failed to copy image');
+    }
+  };
+
+  const handleDownloadImage = async () => {
+    if (!editImageUrl) return;
+    try {
+      const response = await fetch(editImageUrl);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'post_image.jpg';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      toast.error('Failed to download image');
+    }
+  };
+
+  const handleUploadImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingImage(true);
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const res = await fetch('/api/uploads/product-image', {
+        method: 'POST',
+        body: fd,
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      setEditImageUrl(data.url);
+      toast.success('Image uploaded successfully');
+    } catch (err) {
+      toast.error('Failed to upload image');
+    } finally {
+      setUploadingImage(false);
+    }
+  };
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
@@ -172,22 +234,39 @@ function EditModal({ post, onClose, onSave, editText, setEditText, editPublishAt
             />
           </div>
 
-          {/* Media */}
-          {post.image_url && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img 
-              src={post.image_url} 
-              alt="Post Content" 
-              style={{ width: '100%', display: 'block', maxHeight: 500, objectFit: 'contain', background: '#f0f2f5' }} 
-            />
-          )}
-          {post.video_url && (
-            <video 
-              src={post.video_url} 
-              controls
-              style={{ width: '100%', display: 'block', maxHeight: 500, objectFit: 'contain', background: '#000' }} 
-            />
-          )}
+          <div style={{ padding: '0 16px 12px' }}>
+            <div style={{ display: 'flex', gap: 8, marginBottom: 8, justifyContent: 'flex-end' }}>
+               <button onClick={handleCopyText} style={{ background: 'none', border: 'none', color: '#65676b', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontSize: '0.8rem' }}><Copy size={14}/> Copy Text</button>
+            </div>
+            
+            {editImageUrl ? (
+              <div style={{ position: 'relative', background: '#f0f2f5', borderRadius: 8, overflow: 'hidden' }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={editImageUrl} alt="Post Content" style={{ width: '100%', display: 'block', maxHeight: 500, objectFit: 'contain' }} />
+                <div style={{ position: 'absolute', top: 8, right: 8, display: 'flex', gap: 6, background: 'rgba(0,0,0,0.6)', padding: 6, borderRadius: 8 }}>
+                  <button onClick={handleCopyImage} title="Copy Image" style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer' }}><Copy size={16}/></button>
+                  <button onClick={handleDownloadImage} title="Download" style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer' }}><Download size={16}/></button>
+                  <label title="Change Image" style={{ cursor: 'pointer', color: '#fff', display: 'flex', alignItems: 'center' }}>
+                    <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleUploadImage} disabled={uploadingImage} />
+                    {uploadingImage ? <Loader2 size={16} className="spin" /> : <Upload size={16} />}
+                  </label>
+                  <button onClick={() => setEditImageUrl(null)} title="Remove Image" style={{ background: 'none', border: 'none', color: '#ff4d4f', cursor: 'pointer' }}><Trash size={16}/></button>
+                </div>
+              </div>
+            ) : post.video_url ? (
+              <video src={post.video_url} controls style={{ width: '100%', display: 'block', maxHeight: 500, objectFit: 'contain', background: '#000', borderRadius: 8 }} />
+            ) : (
+              <div style={{ background: '#f0f2f5', padding: 32, borderRadius: 8, textAlign: 'center', border: '2px dashed #dddfe2' }}>
+                <ImageIcon size={32} style={{ color: '#bcc0c4', margin: '0 auto 12px' }} />
+                <p style={{ margin: '0 0 16px', fontSize: '0.9rem', color: '#65676b' }}>No image attached to this post.</p>
+                <label className="btn btn-secondary" style={{ display: 'inline-flex', cursor: 'pointer', margin: '0 auto' }}>
+                   <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleUploadImage} disabled={uploadingImage} />
+                   {uploadingImage ? <Loader2 size={14} className="spin" /> : <Upload size={14} />}
+                   {uploadingImage ? 'Uploading...' : 'Upload Image'}
+                </label>
+              </div>
+            )}
+          </div>
 
           {/* Footer controls */}
           <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -261,6 +340,7 @@ export default function PostsPage() {
   const [editText, setEditText] = useState('');
   const [editPublishAt, setEditPublishAt] = useState('');
   const [editProductNotes, setEditProductNotes] = useState('');
+  const [editImageUrl, setEditImageUrl] = useState<string | null>(null);
   const previewTextareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   // Async generation state
@@ -288,7 +368,7 @@ export default function PostsPage() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, body }: { id: string; body: { text?: string; publish_at?: string | null; product_notes?: string } }) => api.updatePost(id, body),
+    mutationFn: ({ id, body }: { id: string; body: { text?: string; image_url?: string | null; publish_at?: string | null; product_notes?: string } }) => api.updatePost(id, body),
     onSuccess: () => {
       toast.success('Post updated');
       setEditingPost(null);
@@ -430,13 +510,19 @@ export default function PostsPage() {
     setEditText(post.text || '');
     setEditPublishAt(toDateTimeLocal(post.publish_at));
     setEditProductNotes(post.product_notes || '');
+    setEditImageUrl(post.image_url || null);
   }
 
   function saveEdit() {
     if (!editingPost) return;
     updateMutation.mutate({
       id: editingPost.id,
-      body: { text: editText, publish_at: editPublishAt || null, product_notes: editProductNotes },
+      body: { 
+        text: editText, 
+        publish_at: editPublishAt || null, 
+        product_notes: editProductNotes,
+        image_url: editImageUrl
+      },
     });
   }
 
@@ -475,6 +561,8 @@ export default function PostsPage() {
         setEditPublishAt={setEditPublishAt}
         editProductNotes={editProductNotes}
         setEditProductNotes={setEditProductNotes}
+        editImageUrl={editImageUrl}
+        setEditImageUrl={setEditImageUrl}
         isPending={updateMutation.isPending}
       />
 
