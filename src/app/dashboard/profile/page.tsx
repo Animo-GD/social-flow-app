@@ -314,7 +314,6 @@ function ProfileTab({ profile, refetch }: { profile: UserProfile; refetch: () =>
 function CreditsTab({ initialCredits }: { initialCredits: number }) {
   const { lang } = useLang();
   const isAr = lang === 'ar';
-  const [buying, setBuying] = useState<string | null>(null);
   const searchParams = useSearchParams();
   const success = searchParams.get('success');
   const cancelled = searchParams.get('cancelled');
@@ -335,20 +334,20 @@ function CreditsTab({ initialCredits }: { initialCredits: number }) {
     queryFn: () => fetch('/api/credits/packages').then(r => r.json()),
   });
 
+  const paymentLinks: Record<string, string | undefined> = {
+    'Starter': process.env.NEXT_PUBLIC_PAYMENT_LINK_STARTER,
+    'Pro': process.env.NEXT_PUBLIC_PAYMENT_LINK_PRO,
+    'Agency': process.env.NEXT_PUBLIC_PAYMENT_LINK_AGENCY,
+    'Growth': process.env.NEXT_PUBLIC_PAYMENT_LINK_GROWTH,
+  };
+
   async function handleConfirmPayment(pkg: CreditPackage) {
-    setBuying(pkg.id);
-    try {
-      const endpoint = '/api/credits/checkout/paymob';
-      const res = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ packageId: pkg.id }),
-      });
-      const data = await res.json();
-      if (data.url) window.location.href = data.url;
-      else toast.error(data.error || 'Checkout failed');
-    } catch { toast.error('Failed to initiate checkout'); }
-    setBuying(null);
+    const link = paymentLinks[pkg.name];
+    if (link) {
+      window.location.href = link;
+    } else {
+      toast.error(isAr ? 'رابط الدفع غير متوفر لهذه الباقة' : 'Payment link not available for this package');
+    }
   }
 
   return (
@@ -427,8 +426,8 @@ function CreditsTab({ initialCredits }: { initialCredits: number }) {
               <div style={{ fontSize: '2.2rem', fontWeight: 700, color: 'var(--color-accent)', lineHeight: 1 }}>{pkg.credits.toLocaleString()}</div>
               <div style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', marginBottom: 12 }}>{isAr ? 'كريدت' : 'credits'}</div>
               <div style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: 16 }}>{pkg.price_usd * 50} {isAr ? 'ج.م' : 'EGP'}</div>
-              <button className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }} onClick={() => handleConfirmPayment(pkg)} disabled={!!buying}>
-                {buying === pkg.id ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <CreditCard size={14} />}
+              <button className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }} onClick={() => handleConfirmPayment(pkg)}>
+                <CreditCard size={14} />
                 {isAr ? 'شراء الآن' : 'Buy Now'}
               </button>
             </div>

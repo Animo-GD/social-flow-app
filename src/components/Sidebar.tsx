@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard, FileText, MessageCircle, BarChart2,
-  Settings, TrendingUp, LogOut, Building2, Shield, X, CreditCard, UserCircle,
+  Settings, TrendingUp, LogOut, Building2, Shield, X, CreditCard, UserCircle, LayoutTemplate
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useLang } from '@/lib/LanguageContext';
@@ -18,7 +18,7 @@ const NAV: { href: string; key: TranslationKey; icon: React.ComponentType<{ size
   { href: '/dashboard/messages',   key: 'nav_messages',   icon: MessageCircle },
   { href: '/dashboard/analytics',  key: 'nav_analytics',  icon: BarChart2 },
   { href: '/dashboard/trends',     key: 'nav_trends',     icon: TrendingUp },
-  { href: '/dashboard/profile',    key: 'nav_profile',    icon: UserCircle },
+  { href: '/dashboard/templates',  key: 'nav_templates',  icon: LayoutTemplate },
   { href: '/dashboard/settings',   key: 'nav_settings',   icon: Settings },
 ];
 
