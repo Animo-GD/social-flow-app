@@ -3,7 +3,7 @@
  * Docs: https://docs.paymob.com/
  */
 
-const PAYMOB_BASE_URL = 'https://accept.paymob.com/api';
+const PAYMOB_BASE_URL = 'https://accept-alpha.paymob.com/api';
 
 /**
  * Step 1: Authentication

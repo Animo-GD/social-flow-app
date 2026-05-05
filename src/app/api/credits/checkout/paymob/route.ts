@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
 
     // Paymob Iframe URL
     const iframeId = process.env.PAYMOB_IFRAME_ID;
-    const checkoutUrl = `https://egypt.paymob.com/api/acceptance/iframes/${iframeId}?payment_token=${paymentKey}`;
+    const checkoutUrl = `https://accept-alpha.paymob.com/api/acceptance/iframes/${iframeId}?payment_token=${paymentKey}`;
 
     return NextResponse.json({ url: checkoutUrl });
   } catch (err) {
