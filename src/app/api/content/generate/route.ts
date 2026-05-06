@@ -6,8 +6,8 @@ import { getSession } from '@/lib/session';
 export async function POST(req: NextRequest) {
   const body = await req.json();
   const rawActionType = body?.action_type;
-  const allowedActionTypes = new Set(['generate_text', 'generate_image', 'generate_both', 'generate_video']);
-  const action_type = allowedActionTypes.has(rawActionType) ? rawActionType : 'generate_both';
+  const allowedActionTypes = new Set(['generate_text', 'generate_image', 'generate_full_post', 'generate_video']);
+  const action_type = allowedActionTypes.has(rawActionType) ? rawActionType : 'generate_full_post';
   const payload = {
     ...body,
     action_type,
@@ -27,7 +27,13 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const CREDITS_PER_GENERATION = 1;
+  // Get dynamic price from database for this specific service
+  const { data: priceRow } = await supabase
+    .from('service_prices')
+    .select('price')
+    .eq('service_name', action_type)
+    .single();
+  const CREDITS_PER_GENERATION = priceRow?.price ?? 1;
 
   if (session) {
     // Check balance

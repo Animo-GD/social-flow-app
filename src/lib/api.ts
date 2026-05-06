@@ -83,6 +83,11 @@ export const api = {
     req<AdminUser>(`/api/admin/users/${id}`, { method: 'PATCH', body: JSON.stringify(body) }),
   deleteAdminUser: (id: string) => req<{ ok: true }>(`/api/admin/users/${id}`, { method: 'DELETE' }),
 
+  // Admin Service Prices
+  getServicePrices: () => req<{ id: string; service_name: string; price: number }[]>('/api/admin/prices'),
+  updateServicePrice: (body: { service_name: string; price: number }) =>
+    req<{ id: string; service_name: string; price: number }>('/api/admin/prices', { method: 'POST', body: JSON.stringify(body) }),
+
   // User Profile
   getUserProfile: () => req<UserProfile>('/api/user/profile'),
   updateUserProfile: (body: Partial<UserProfile> & { current_password?: string; new_password?: string }) =>

@@ -4,12 +4,14 @@ import { FormEvent, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { useLang } from '@/lib/LanguageContext';
-import { Mail, Users, UserPlus, ShieldAlert, Trash2 } from 'lucide-react';
+import { Mail, Users, UserPlus, ShieldAlert, Trash2, Coins, Save, Loader2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 export default function AdminUsersPage() {
   const { t } = useLang();
   const qc = useQueryClient();
   const { data, isLoading, error } = useQuery({ queryKey: ['admin-users'], queryFn: api.getAdminUsers });
+  const { data: prices, isLoading: pricesLoading } = useQuery({ queryKey: ['admin-prices'], queryFn: api.getServicePrices });
 
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
@@ -31,6 +33,15 @@ export default function AdminUsersPage() {
   const deleteUser = useMutation({
     mutationFn: api.deleteAdminUser,
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-users'] }),
+  });
+
+  const updatePrice = useMutation({
+    mutationFn: api.updateServicePrice,
+    onSuccess: () => {
+      toast.success('Price updated successfully');
+      return qc.invalidateQueries({ queryKey: ['admin-prices'] });
+    },
+    onError: (e: Error) => toast.error(e.message || 'Failed to update price'),
   });
 
   const users = useMemo(() => data ?? [], [data]);
@@ -170,6 +181,63 @@ export default function AdminUsersPage() {
                     <tr>
                       <td colSpan={4} style={{ color: 'var(--color-text-muted)' }}>
                         {t('admin_empty')}
+                      </td>
+                    </tr>
+                  ) : null}
+                </tbody>
+              </table>
+            </div>
+          ) : null}
+        </div>
+
+        <div className="card">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+            <Coins size={18} />
+            <h2 className="text-subhead">Service Prices (Credits)</h2>
+          </div>
+          {pricesLoading ? <p>{t('loading')}</p> : null}
+          {!pricesLoading && prices ? (
+            <div className="table-wrap" style={{ overflowX: 'auto' }}>
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Service Name</th>
+                    <th>Price (Credits)</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {prices.map((item) => (
+                    <tr key={item.id}>
+                      <td>{item.service_name}</td>
+                      <td>
+                        <input
+                          type="number"
+                          min="1"
+                          className="form-input"
+                          style={{ width: 100 }}
+                          defaultValue={item.price}
+                          onBlur={(e) => {
+                            const newPrice = Number(e.target.value);
+                            if (newPrice !== item.price && newPrice > 0) {
+                              updatePrice.mutate({ service_name: item.service_name, price: newPrice });
+                            }
+                          }}
+                        />
+                      </td>
+                      <td>
+                        {updatePrice.isPending && updatePrice.variables?.service_name === item.service_name ? (
+                          <Loader2 size={16} className="spin" style={{ color: 'var(--color-accent)' }} />
+                        ) : (
+                          <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>Auto-saves on blur</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                  {prices.length === 0 ? (
+                    <tr>
+                      <td colSpan={3} style={{ color: 'var(--color-text-muted)' }}>
+                        No services found
                       </td>
                     </tr>
                   ) : null}

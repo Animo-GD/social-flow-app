@@ -15,7 +15,7 @@ interface Props {
   jobId: string;
   onComplete: (result: { text: string; image_url?: string; video_url?: string; id?: string }) => void;
   onError: (msg: string) => void;
-  actionType?: 'generate_text' | 'generate_image' | 'generate_both' | 'generate_video';
+  actionType?: 'generate_text' | 'generate_image' | 'generate_full_post' | 'generate_video';
 }
 
 /* ─────────────────────────────────────────────
@@ -229,7 +229,7 @@ function TextGeneratingView({ stages, activeIndex, elapsed, lang }: {
 ───────────────────────────────────────────── */
 export default function GeneratingCard({ jobId, onComplete, onError, actionType = 'generate_text' }: Props) {
   const { lang } = useLang();
-  const isImage = actionType === 'generate_image' || actionType === 'generate_both';
+  const isImage = actionType === 'generate_image' || actionType === 'generate_full_post';
   const isVideo = actionType === 'generate_video';
 
   const stages = useMemo(() => {

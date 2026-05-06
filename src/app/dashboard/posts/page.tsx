@@ -414,7 +414,7 @@ export default function PostsPage() {
   }, [t]);
 
   // ── Start generation ───────────────────────────────────────────────
-  async function handleGenerate(action_type: 'generate_text' | 'generate_image' | 'generate_both' | 'generate_video') {
+  async function handleGenerate(action_type: 'generate_text' | 'generate_image' | 'generate_full_post' | 'generate_video') {
     if (!form.topic.trim()) { toast.error(t('toast_enter_topic')); return; }
     setGeneratingActionType(action_type);
 
@@ -681,10 +681,10 @@ export default function PostsPage() {
                 </button>
                 <button
                   className="btn btn-secondary"
-                  onClick={() => handleGenerate('generate_both')}
+                  onClick={() => handleGenerate('generate_full_post')}
                   disabled={!!activeJobId}
                 >
-                  {activeJobId && generatingActionType === 'generate_both' ? <Loader2 size={14} className="spin" /> : <Sparkles size={14} />}
+                  {activeJobId && generatingActionType === 'generate_full_post' ? <Loader2 size={14} className="spin" /> : <Sparkles size={14} />}
                   {t('btn_generate_both')}
                 </button>
                 <button
