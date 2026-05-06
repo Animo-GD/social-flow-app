@@ -88,6 +88,11 @@ export const api = {
   updateServicePrice: (body: { service_name: string; price: number }) =>
     req<{ id: string; service_name: string; price: number }>('/api/admin/prices', { method: 'POST', body: JSON.stringify(body) }),
 
+  // Admin Credit Packages
+  getCreditPackages: () => req<CreditPackage[]>('/api/admin/packages'),
+  updateCreditPackage: (body: Partial<CreditPackage> & { id: string }) =>
+    req<CreditPackage>('/api/admin/packages', { method: 'POST', body: JSON.stringify(body) }),
+
   // User Profile
   getUserProfile: () => req<UserProfile>('/api/user/profile'),
   updateUserProfile: (body: Partial<UserProfile> & { current_password?: string; new_password?: string }) =>
@@ -143,4 +148,13 @@ export interface UserProfile {
   credits: number;
   is_admin?: boolean;
   created_at?: string;
+}
+
+export interface CreditPackage {
+  id: string;
+  name: string;
+  credits: number;
+  price_usd: number;
+  paymob_url?: string;
+  is_active?: boolean;
 }

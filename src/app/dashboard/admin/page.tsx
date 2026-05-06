@@ -12,6 +12,7 @@ export default function AdminUsersPage() {
   const qc = useQueryClient();
   const { data, isLoading, error } = useQuery({ queryKey: ['admin-users'], queryFn: api.getAdminUsers });
   const { data: prices, isLoading: pricesLoading } = useQuery({ queryKey: ['admin-prices'], queryFn: api.getServicePrices });
+  const { data: packages, isLoading: packagesLoading } = useQuery({ queryKey: ['admin-packages'], queryFn: api.getCreditPackages });
 
   const updateUser = useMutation({
     mutationFn: ({ id, credits }: { id: string; credits: number }) => api.updateAdminUser(id, { credits }),
@@ -34,6 +35,15 @@ export default function AdminUsersPage() {
       return qc.invalidateQueries({ queryKey: ['admin-prices'] });
     },
     onError: (e: Error) => toast.error(e.message || 'Failed to update price'),
+  });
+
+  const updatePackage = useMutation({
+    mutationFn: api.updateCreditPackage,
+    onSuccess: () => {
+      toast.success('Package updated successfully');
+      return qc.invalidateQueries({ queryKey: ['admin-packages'] });
+    },
+    onError: (e: Error) => toast.error(e.message || 'Failed to update package'),
   });
 
   const users = useMemo(() => data ?? [], [data]);
@@ -195,6 +205,81 @@ export default function AdminUsersPage() {
                     <tr>
                       <td colSpan={3} style={{ color: 'var(--color-text-muted)' }}>
                         No services found
+                      </td>
+                    </tr>
+                  ) : null}
+                </tbody>
+              </table>
+            </div>
+          ) : null}
+        </div>
+
+        <div className="card">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+            <Coins size={18} />
+            <h2 className="text-subhead">Credit Packages (Checkout)</h2>
+          </div>
+          {packagesLoading ? <p>{t('loading')}</p> : null}
+          {!packagesLoading && packages ? (
+            <div className="table-wrap" style={{ overflowX: 'auto' }}>
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Package Name</th>
+                    <th>Credits</th>
+                    <th>Price</th>
+                    <th>Paymob URL</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {packages.map((pkg) => (
+                    <tr key={pkg.id}>
+                      <td>{pkg.name}</td>
+                      <td>{pkg.credits}</td>
+                      <td>
+                        <input
+                          type="number"
+                          step="0.01"
+                          className="form-input"
+                          style={{ width: 100 }}
+                          defaultValue={pkg.price_usd}
+                          onBlur={(e) => {
+                            const newPrice = Number(e.target.value);
+                            if (newPrice !== pkg.price_usd && newPrice >= 0) {
+                              updatePackage.mutate({ id: pkg.id, price_usd: newPrice });
+                            }
+                          }}
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="text"
+                          className="form-input"
+                          placeholder="https://..."
+                          style={{ width: 300 }}
+                          defaultValue={pkg.paymob_url || ''}
+                          onBlur={(e) => {
+                            const newUrl = e.target.value;
+                            if (newUrl !== (pkg.paymob_url || '')) {
+                              updatePackage.mutate({ id: pkg.id, paymob_url: newUrl });
+                            }
+                          }}
+                        />
+                      </td>
+                      <td>
+                        {updatePackage.isPending && updatePackage.variables?.id === pkg.id ? (
+                          <Loader2 size={16} className="spin" style={{ color: 'var(--color-accent)' }} />
+                        ) : (
+                          <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>Auto-saves on blur</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                  {packages.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} style={{ color: 'var(--color-text-muted)' }}>
+                        No packages found
                       </td>
                     </tr>
                   ) : null}

@@ -33,6 +33,7 @@ interface CreditPackage {
   name: string;
   credits: number;
   price_usd: number;
+  paymob_url?: string;
 }
 
 interface Transaction {
@@ -342,7 +343,7 @@ function CreditsTab({ initialCredits }: { initialCredits: number }) {
   };
 
   async function handleConfirmPayment(pkg: CreditPackage) {
-    const link = paymentLinks[pkg.name];
+    const link = pkg.paymob_url;
     if (link) {
       window.location.href = link;
     } else {
@@ -425,7 +426,7 @@ function CreditsTab({ initialCredits }: { initialCredits: number }) {
               <div style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: 4 }}>{pkg.name}</div>
               <div style={{ fontSize: '2.2rem', fontWeight: 700, color: 'var(--color-accent)', lineHeight: 1 }}>{pkg.credits.toLocaleString()}</div>
               <div style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', marginBottom: 12 }}>{isAr ? 'كريدت' : 'credits'}</div>
-              <div style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: 16 }}>{pkg.price_usd * 50} {isAr ? 'ج.م' : 'EGP'}</div>
+              <div style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: 16 }}>{pkg.price_usd} {isAr ? 'ج.م' : 'EGP'}</div>
               <button className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }} onClick={() => handleConfirmPayment(pkg)}>
                 <CreditCard size={14} />
                 {isAr ? 'شراء الآن' : 'Buy Now'}
