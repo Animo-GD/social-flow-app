@@ -345,7 +345,7 @@ export default function PostsPage() {
 
   // Async generation state
   const [activeJobId, setActiveJobId] = useState<string | null>(null);
-  const [generatingActionType, setGeneratingActionType] = useState<'generate_text' | 'generate_image' | 'generate_both' | 'generate_video'>('generate_both');
+  const [generatingActionType, setGeneratingActionType] = useState<'generate_text' | 'generate_image' | 'generate_full_post' | 'generate_video'>('generate_full_post');
 
   const { data: posts, isLoading: postsLoading } = useQuery({ queryKey: ['posts'], queryFn: api.getPosts });
 
@@ -606,7 +606,7 @@ export default function PostsPage() {
                   value={form.topic}
                   onChange={e => setForm(f => ({ ...f, topic: e.target.value }))}
                   placeholder={isAr ? 'ماذا يدور في ذهنك؟ (مثال: فوائد الشاي الأخضر)' : "What's on your mind? (e.g. Benefits of Green Tea)"}
-                  onKeyDown={e => e.key === 'Enter' && handleGenerate('generate_both')}
+                  onKeyDown={e => e.key === 'Enter' && handleGenerate('generate_full_post')}
                 />
               </div>
 
