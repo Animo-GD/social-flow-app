@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { useLang } from '@/lib/LanguageContext';
@@ -13,21 +13,13 @@ export default function AdminUsersPage() {
   const { data, isLoading, error } = useQuery({ queryKey: ['admin-users'], queryFn: api.getAdminUsers });
   const { data: prices, isLoading: pricesLoading } = useQuery({ queryKey: ['admin-prices'], queryFn: api.getServicePrices });
 
-  const [email, setEmail] = useState('');
-  const [name, setName] = useState('');
-  const [password, setPassword] = useState('');
-  const [formError, setFormError] = useState('');
-
-  const createUser = useMutation({
-    mutationFn: api.createAdminUser,
+  const updateUser = useMutation({
+    mutationFn: ({ id, credits }: { id: string; credits: number }) => api.updateAdminUser(id, { credits }),
     onSuccess: () => {
-      setEmail('');
-      setName('');
-      setPassword('');
-      setFormError('');
+      toast.success('User credits updated');
       return qc.invalidateQueries({ queryKey: ['admin-users'] });
     },
-    onError: (e: Error) => setFormError(e.message || 'Failed to create user'),
+    onError: (e: Error) => toast.error(e.message || 'Failed to update user'),
   });
 
   const deleteUser = useMutation({
@@ -58,11 +50,6 @@ export default function AdminUsersPage() {
     }).length;
   }, [users]);
 
-  function onSubmit(e: FormEvent) {
-    e.preventDefault();
-    setFormError('');
-    createUser.mutate({ email, name, password });
-  }
 
   return (
     <div>
@@ -92,52 +79,6 @@ export default function AdminUsersPage() {
           </div>
         </div>
 
-        <div className="card">
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-            <ShieldAlert size={18} />
-            <h2 className="text-subhead">{t('admin_create_user')}</h2>
-          </div>
-          <form onSubmit={onSubmit} style={{ display: 'grid', gap: 12, maxWidth: 560 }}>
-            <div className="form-row">
-              <div>
-                <label className="form-label">{t('label_email')}</label>
-                <input
-                  className="form-input"
-                  placeholder="name@domain.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
-              </div>
-              <div>
-                <label className="form-label">{t('admin_name_optional')}</label>
-                <input
-                  className="form-input"
-                  placeholder="Full name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                />
-              </div>
-            </div>
-            <div style={{ maxWidth: 280 }}>
-              <label className="form-label">{t('label_password')}</label>
-              <input
-                className="form-input"
-                type="password"
-                placeholder="Minimum 6 characters"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={6}
-              />
-            </div>
-            {formError ? <p style={{ color: 'var(--color-error)', margin: 0 }}>{formError}</p> : null}
-            <button className="btn btn-primary" type="submit" disabled={createUser.isPending} style={{ width: 'fit-content' }}>
-              <UserPlus size={14} />
-              {createUser.isPending ? t('admin_creating') : t('admin_create_btn')}
-            </button>
-          </form>
-        </div>
 
         <div className="card">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
@@ -153,6 +94,7 @@ export default function AdminUsersPage() {
                   <tr>
                     <th>{t('label_email')}</th>
                     <th>{t('admin_name_col')}</th>
+                    <th>Credits</th>
                     <th>{t('admin_created_col')}</th>
                     <th>{t('col_action')}</th>
                   </tr>
@@ -162,6 +104,21 @@ export default function AdminUsersPage() {
                     <tr key={user.id}>
                       <td>{user.email}</td>
                       <td>{user.name}</td>
+                      <td>
+                        <input
+                          type="number"
+                          min="0"
+                          className="form-input"
+                          style={{ width: 80 }}
+                          defaultValue={user.credits ?? 0}
+                          onBlur={(e) => {
+                            const newCredits = Number(e.target.value);
+                            if (newCredits !== (user.credits ?? 0) && newCredits >= 0) {
+                              updateUser.mutate({ id: user.id, credits: newCredits });
+                            }
+                          }}
+                        />
+                      </td>
                       <td>{user.created_at ? new Date(user.created_at).toLocaleString() : '-'}</td>
                       <td>
                         <button
@@ -179,7 +136,7 @@ export default function AdminUsersPage() {
                   ))}
                   {users.length === 0 ? (
                     <tr>
-                      <td colSpan={4} style={{ color: 'var(--color-text-muted)' }}>
+                      <td colSpan={5} style={{ color: 'var(--color-text-muted)' }}>
                         {t('admin_empty')}
                       </td>
                     </tr>
