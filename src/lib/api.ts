@@ -53,6 +53,9 @@ export const api = {
   generateContent: (body: { topic: string; platform: string; tone: string; language: string; product_notes?: string }) =>
     req<{ text: string; image_url?: string }>('/api/content/generate', { method: 'POST', body: JSON.stringify(body) }),
 
+  getIdeas: (platform: string) =>
+    req<{ id: string; title: string; description: string; platform: string }[]>('/api/content/ideas', { method: 'POST', body: JSON.stringify({ platform }) }),
+
   // Posts
   getPosts: () => req<Post[]>('/api/posts'),
   schedulePost: (body: { text: string; image_url?: string; platform: string; publish_at?: string; product_notes?: string }) =>

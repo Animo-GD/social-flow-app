@@ -4,7 +4,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api, Post } from '@/lib/api';
 import dynamic from 'next/dynamic';
-import { Loader2, Sparkles, Calendar, Trash2, Clock, CheckCircle, XCircle, Image as ImageIcon, FileText, Video, Save, Lightbulb, X, Copy, Download, Upload, Trash } from 'lucide-react';
+import { Loader2, Sparkles, Calendar, Trash2, Clock, CheckCircle, XCircle, Image as ImageIcon, FileText, Video, Save, Lightbulb, X, Copy, Download, Upload, Trash, Wand2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Toaster } from 'react-hot-toast';
 import { useLang } from '@/lib/LanguageContext';
@@ -16,6 +16,103 @@ const GeneratingCard = dynamic(() => import('@/components/GeneratingCard'), { ss
 
 const PLATFORMS = ['instagram', 'facebook', 'linkedin', 'x'] as const;
 const TONES     = ['formal', 'casual', 'sales'] as const;
+
+function IdeasModal({ isOpen, onClose, onSelect, platform, isAr }: { isOpen: boolean; onClose: () => void; onSelect: (idea: any) => void; platform: string; isAr: boolean }) {
+  const [ideas, setIdeas] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      handleFetch();
+    }
+  }, [isOpen]);
+
+  const handleFetch = async () => {
+    setLoading(true);
+    try {
+      const data = await api.getIdeas(platform);
+      setIdeas(data);
+    } catch (err) {
+      toast.error('Failed to fetch ideas');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 600 }}>
+        <div className="modal-header">
+          <h2 className="modal-title" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <Lightbulb size={20} style={{ color: 'var(--color-warning)' }} />
+            {isAr ? 'أفكار للمحتوى' : 'Content Ideas'}
+          </h2>
+          <button className="btn-icon" onClick={onClose}><X size={18} /></button>
+        </div>
+        <div style={{ maxHeight: '60vh', overflowY: 'auto', padding: '16px' }}>
+          {loading ? (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, padding: 40 }}>
+              <Loader2 className="spin" size={32} style={{ color: 'var(--color-accent)' }} />
+              <p style={{ fontSize: '0.9rem', color: 'var(--color-text-secondary)' }}>
+                {isAr ? 'جارٍ البحث عن أفكار مميزة...' : 'Finding great ideas for you...'}
+              </p>
+            </div>
+          ) : ideas.length === 0 ? (
+            <div className="empty-state">
+              <Lightbulb size={40} style={{ opacity: 0.2 }} />
+              <p>{isAr ? 'لا توجد أفكار متاحة حالياً' : 'No ideas found'}</p>
+              <button className="btn btn-secondary" onClick={handleFetch}>{isAr ? 'إعادة المحاولة' : 'Try again'}</button>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {ideas.map((idea, idx) => (
+                <div 
+                  key={idea.id || idx} 
+                  className="card-flat" 
+                  style={{ 
+                    cursor: 'pointer', 
+                    border: '1px solid var(--color-border)', 
+                    padding: '16px',
+                    transition: 'all 0.2s ease',
+                    background: 'var(--color-bg-warm)'
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.borderColor = 'var(--color-accent)';
+                    e.currentTarget.style.boxShadow = 'var(--shadow-card)';
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.borderColor = 'var(--color-border)';
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
+                  onClick={() => onSelect(idea)}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+                    <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--color-text-primary)', margin: 0 }}>{idea.title}</h3>
+                    <span className="badge" style={{ textTransform: 'capitalize' }}>{idea.platform}</span>
+                  </div>
+                  <p style={{ fontSize: '0.88rem', color: 'var(--color-text-secondary)', margin: 0, lineHeight: 1.5 }}>{idea.description}</p>
+                  <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 4, color: 'var(--color-accent)', fontSize: '0.82rem', fontWeight: 600 }}>
+                    <Wand2 size={12} />
+                    {isAr ? 'استخدم هذه الفكرة' : 'Use this idea'}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+        <div className="modal-footer" style={{ borderTop: '1px solid var(--color-border)', padding: '12px 16px' }}>
+          <button className="btn btn-secondary" onClick={onClose}>{isAr ? 'إغلاق' : 'Close'}</button>
+          <button className="btn btn-primary" onClick={handleFetch} disabled={loading}>
+            {loading ? <Loader2 size={14} className="spin" /> : <Lightbulb size={14} />}
+            {isAr ? 'أفكار أخرى' : 'Get More Ideas'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function StatusBadge({ status, t }: { status: Post['status']; t: (k: TranslationKey) => string }) {
   if (status === 'draft') return <span className="badge badge-gray"><FileText size={10} style={{ marginInlineEnd: 3 }} />Draft</span>;
@@ -347,6 +444,19 @@ export default function PostsPage() {
   const [activeJobId, setActiveJobId] = useState<string | null>(null);
   const [generatingActionType, setGeneratingActionType] = useState<'generate_text' | 'generate_image' | 'generate_full_post' | 'generate_video'>('generate_full_post');
 
+  const [showIdeasModal, setShowIdeasModal] = useState(false);
+
+  const handleSelectIdea = (idea: any) => {
+    setForm(f => ({ 
+      ...f, 
+      topic: idea.title, 
+      product_notes: idea.description,
+      platform: idea.platform || f.platform 
+    }));
+    setShowIdeasModal(false);
+    toast.success(isAr ? 'تم تطبيق الفكرة!' : 'Idea applied!');
+  };
+
   const { data: posts, isLoading: postsLoading } = useQuery({ queryKey: ['posts'], queryFn: api.getPosts });
 
   // ── Schedule mutation ──────────────────────────────────────────────
@@ -566,6 +676,14 @@ export default function PostsPage() {
         isPending={updateMutation.isPending}
       />
 
+      <IdeasModal
+        isOpen={showIdeasModal}
+        onClose={() => setShowIdeasModal(false)}
+        onSelect={handleSelectIdea}
+        platform={form.platform}
+        isAr={isAr}
+      />
+
 
       <div className="page-header">
         <h1 className="text-heading">{t('page_posts_title')}</h1>
@@ -589,7 +707,17 @@ export default function PostsPage() {
           <div className="grid-2">
             {/* ── Form ── */}
             <div className="card">
-              <h2 className="text-subhead" style={{ marginBottom: 20 }}>{t('generate_content_title')}</h2>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+                <h2 className="text-subhead" style={{ margin: 0 }}>{t('generate_content_title')}</h2>
+                <button 
+                  className="btn btn-secondary btn-sm" 
+                  style={{ color: 'var(--color-accent)', borderColor: 'var(--color-accent)', borderRadius: 20 }}
+                  onClick={() => setShowIdeasModal(true)}
+                >
+                  <Lightbulb size={14} />
+                  {isAr ? 'أعطني فكرة' : 'Give me an idea'}
+                </button>
+              </div>
 
               <div className="form-group">
                 <label className="form-label" htmlFor="topic">{t('label_topic')}</label>
