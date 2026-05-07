@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify({
         userId: session.id,
         platform: platform || 'all',
-        userLanguage: session.user?.preferred_language || 'en'
+        userLanguage: 'en' // Language not stored in session, default to English
       }),
     });
 
