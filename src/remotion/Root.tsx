@@ -5,9 +5,9 @@ import { StudioComposition, CompositionProps } from './StudioComposition';
 export const RemotionRoot: React.FC = () => {
   return (
     <>
-      <Composition<CompositionProps>
+      <Composition
         id="StudioComposition"
-        component={StudioComposition}
+        component={StudioComposition as any}
         durationInFrames={90}
         fps={30}
         width={1080}
