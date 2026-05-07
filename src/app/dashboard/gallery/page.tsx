@@ -50,13 +50,23 @@ export default function GalleryPage() {
                   padding: 0, 
                   overflow: 'hidden', 
                   border: '1px solid var(--color-border)', 
-                  borderRadius: 12, 
+                  borderRadius: 16, 
                   display: 'flex', 
                   flexDirection: 'column',
-                  background: 'var(--color-bg)'
+                  background: 'var(--color-bg-warm)',
+                  boxShadow: 'var(--shadow-card)',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.transform = 'translateY(-4px)';
+                  e.currentTarget.style.boxShadow = 'var(--shadow-hover)';
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = 'var(--shadow-card)';
                 }}
               >
-                <div style={{ position: 'relative', paddingTop: '100%', background: '#000', overflow: 'hidden' }}>
+                <div style={{ position: 'relative', paddingTop: '100%', background: 'var(--color-bg-dark)', overflow: 'hidden' }}>
                   {item.video_url ? (
                     <video 
                       src={item.video_url} 
@@ -68,49 +78,51 @@ export default function GalleryPage() {
                     <img 
                       src={item.image_url} 
                       alt="Generated" 
-                      style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+                      style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s ease' }}
                     />
                   ) : null}
                   
                   {/* Badge */}
                   <div style={{ 
                     position: 'absolute', 
-                    top: 10, 
-                    right: 10, 
-                    background: 'rgba(0,0,0,0.6)', 
-                    color: '#fff', 
-                    padding: '4px 8px', 
-                    borderRadius: 6,
+                    top: 12, 
+                    right: 12, 
+                    background: 'rgba(255, 255, 255, 0.9)', 
+                    color: 'var(--color-text-primary)', 
+                    padding: '6px 10px', 
+                    borderRadius: 8,
                     fontSize: '0.75rem',
+                    fontWeight: 600,
                     display: 'flex',
                     alignItems: 'center',
-                    gap: 4
+                    gap: 6,
+                    backdropFilter: 'blur(4px)'
                   }}>
-                    {item.video_url ? <Video size={12} /> : <ImageIcon size={12} />}
+                    {item.video_url ? <Video size={14} /> : <ImageIcon size={14} />}
                     {item.video_url ? 'Video' : 'Image'}
                   </div>
                 </div>
 
-                <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
                   <p style={{ 
                     margin: 0, 
-                    fontSize: '0.85rem', 
-                    color: 'var(--color-text-primary)',
+                    fontSize: '0.9rem', 
+                    color: 'var(--color-text-secondary)',
                     display: '-webkit-box',
                     WebkitLineClamp: 2,
                     WebkitBoxOrient: 'vertical',
                     overflow: 'hidden',
-                    lineHeight: 1.4
+                    lineHeight: 1.5
                   }}>
-                    {item.text || (isAr ? 'بدون نص' : 'No text')}
+                    {item.text || (isAr ? 'بدون نص' : 'No text provided')}
                   </p>
                   
                   <Link 
                     href={`/dashboard/studio?media_url=${encodeURIComponent(item.image_url || item.video_url || '')}`}
                     className="btn btn-secondary"
-                    style={{ width: '100%', justifyContent: 'center', marginTop: 4, textDecoration: 'none' }}
+                    style={{ width: '100%', justifyContent: 'center', marginTop: 'auto', textDecoration: 'none' }}
                   >
-                    <Edit3 size={14} style={{ marginInlineEnd: 6 }} />
+                    <Edit3 size={16} style={{ marginInlineEnd: 8 }} />
                     {isAr ? 'تعديل في الاستوديو' : 'Edit in Studio'}
                   </Link>
                 </div>

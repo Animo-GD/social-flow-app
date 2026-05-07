@@ -7,78 +7,63 @@ import { Player } from '@remotion/player';
 import { AbsoluteFill, Img, interpolate, useCurrentFrame, useVideoConfig } from 'remotion';
 import { Type, Globe, PlayCircle, Loader2 } from 'lucide-react';
 
-// --- Remotion Composition ---
-interface CompositionProps {
-  mediaUrl: string;
-  text: string;
-  lang: 'en' | 'ar';
-  animation: 'none' | 'fade' | 'slide_up';
-}
-
-const StudioComposition: React.FC<CompositionProps> = ({ mediaUrl, text, lang, animation }) => {
-  const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
-
-  // Animation logic
-  let opacity = 1;
-  let translateY = 0;
-
-  if (animation === 'fade') {
-    opacity = interpolate(frame, [0, fps], [0, 1], { extrapolateRight: 'clamp' });
-  } else if (animation === 'slide_up') {
-    opacity = interpolate(frame, [0, fps / 2], [0, 1], { extrapolateRight: 'clamp' });
-    translateY = interpolate(frame, [0, fps], [50, 0], { extrapolateRight: 'clamp' });
-  }
-
-  const isAr = lang === 'ar';
-
-  return (
-    <AbsoluteFill style={{ backgroundColor: '#000', justifyContent: 'center', alignItems: 'center' }}>
-      {mediaUrl ? (
-        <Img 
-          src={mediaUrl} 
-          style={{ width: '100%', height: '100%', objectFit: 'contain' }} 
-        />
-      ) : (
-        <div style={{ color: '#fff', fontSize: 24, fontFamily: 'sans-serif' }}>
-          No Media Selected
-        </div>
-      )}
-      
-      {text && (
-        <AbsoluteFill style={{ justifyContent: 'center', alignItems: 'center' }}>
-          <div style={{
-            opacity,
-            transform: `translateY(${translateY}px)`,
-            backgroundColor: 'rgba(0,0,0,0.6)',
-            color: '#fff',
-            padding: '20px 40px',
-            borderRadius: 16,
-            fontSize: 48,
-            fontWeight: 'bold',
-            fontFamily: isAr ? "'Noto Sans Arabic', sans-serif" : 'sans-serif',
-            direction: isAr ? 'rtl' : 'ltr',
-            textAlign: 'center',
-            maxWidth: '80%',
-            whiteSpace: 'pre-wrap'
-          }}>
-            {text}
-          </div>
-        </AbsoluteFill>
-      )}
-    </AbsoluteFill>
-  );
-};
+import { StudioComposition } from '@/remotion/StudioComposition';
+import { toast } from 'react-hot-toast';
+import { useRouter } from 'next/navigation';
 
 // --- Page Content ---
 function StudioContent() {
   const { t, lang: appLang } = useLang();
   const searchParams = useSearchParams();
   const initialMediaUrl = searchParams.get('media_url') || '';
+  const router = useRouter();
 
   const [text, setText] = useState('');
   const [lang, setLang] = useState<'en' | 'ar'>('en');
   const [animation, setAnimation] = useState<'none' | 'fade' | 'slide_up'>('fade');
+  
+  const [isRendering, setIsRendering] = useState(false);
+  const [renderProgress, setRenderProgress] = useState('');
+
+  const handleRender = async () => {
+    if (!initialMediaUrl) {
+      toast.error('No media to render');
+      return;
+    }
+
+    setIsRendering(true);
+    setRenderProgress('Initializing...');
+    
+    try {
+      const res = await fetch('/api/studio/render', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mediaUrl: initialMediaUrl,
+          text,
+          lang,
+          animation
+        })
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || 'Rendering failed');
+      }
+
+      const data = await res.json();
+      toast.success('Video rendered successfully!');
+      
+      // Navigate to gallery to see the new video
+      router.push('/dashboard/gallery');
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || 'Rendering error');
+    } finally {
+      setIsRendering(false);
+      setRenderProgress('');
+    }
+  };
 
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr', gap: 24, height: 'calc(100vh - 140px)' }}>
@@ -134,6 +119,24 @@ function StudioContent() {
             <option value="fade">Fade In</option>
             <option value="slide_up">Slide Up</option>
           </select>
+        </div>
+
+        <div style={{ marginTop: 'auto', paddingTop: 20 }}>
+          <button 
+            className="btn btn-primary" 
+            style={{ width: '100%', justifyContent: 'center' }}
+            onClick={handleRender}
+            disabled={isRendering || !initialMediaUrl}
+          >
+            {isRendering ? (
+              <>
+                <Loader2 size={16} className="spin" style={{ marginInlineEnd: 8 }} />
+                {renderProgress || 'Rendering...'}
+              </>
+            ) : (
+              'Render & Save to Gallery'
+            )}
+          </button>
         </div>
       </div>
 

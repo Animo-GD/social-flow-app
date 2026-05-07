@@ -10,7 +10,9 @@
   },
   "dependencies": {
     "@auth/pg-adapter": "^1.11.2",
+    "@remotion/bundler": "^4.0.458",
     "@remotion/player": "^4.0.455",
+    "@remotion/renderer": "^4.0.458",
     "@supabase/supabase-js": "^2.105.1",
     "@tanstack/react-query": "^5.100.6",
     "@tanstack/react-query-devtools": "^5.100.6",
