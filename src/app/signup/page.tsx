@@ -144,7 +144,7 @@ function SignupContent() {
                 {isAr ? 'إنشاء حساب جديد' : 'Create your account'}
               </h1>
               <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.94rem', marginBottom: 24 }}>
-                {isAr ? 'انضم إلى SocialFlow وابدأ مجانًا' : 'Join SocialFlow and start for free'}
+                {isAr ? 'انضم إلى Mawja وابدأ مجانًا' : 'Join Mawja and start for free'}
               </p>
 
               {error && (

@@ -5,7 +5,7 @@ import React from 'react';
 export default function Logo({ size = 32, fontSize = '1.5rem', className = '' }: { size?: number, fontSize?: string, className?: string }) {
   return (
     <div className={`logo-container ${className}`} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-      {/* Icon: Abstract 'S' with Lightning Bolt */}
+      {/* Icon: Wave */}
       <div style={{ width: size, height: size, flexShrink: 0, position: 'relative' }}>
         <svg 
           viewBox="0 0 40 40" 
@@ -14,20 +14,29 @@ export default function Logo({ size = 32, fontSize = '1.5rem', className = '' }:
           style={{ width: '100%', height: '100%' }}
         >
           <defs>
-            <linearGradient id="logo-grad-new" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+            <linearGradient id="mawja-grad" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
               <stop offset="0%" stopColor="#4f46e5" />
               <stop offset="100%" stopColor="#0ea5e9" />
             </linearGradient>
           </defs>
-          <rect width="40" height="40" rx="10" fill="url(#logo-grad-new)" />
+          <rect width="40" height="40" rx="10" fill="url(#mawja-grad)" />
+          {/* Wave paths */}
           <path 
-            d="M20 8L14 21H20L14 34L26 19H20L26 8H20Z" 
-            fill="white"
+            d="M6 14 C10 10, 14 18, 20 14 C26 10, 30 18, 34 14"
+            stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.6"
+          />
+          <path 
+            d="M6 20 C10 16, 14 24, 20 20 C26 16, 30 24, 34 20"
+            stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.85"
+          />
+          <path 
+            d="M6 26 C10 22, 14 30, 20 26 C26 22, 30 30, 34 26"
+            stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none"
           />
         </svg>
       </div>
 
-      {/* Text Part: SocialFlow */}
+      {/* Text Part: Mawja */}
       <div style={{ 
         fontSize: fontSize, 
         fontWeight: 800, 
@@ -37,11 +46,8 @@ export default function Logo({ size = 32, fontSize = '1.5rem', className = '' }:
         lineHeight: 1,
         whiteSpace: 'nowrap'
       }}>
-        Social<span style={{ color: '#4f46e5' }}>Flow</span>
+        Maw<span style={{ color: '#4f46e5' }}>ja</span>
       </div>
     </div>
   );
 }
-
-
-

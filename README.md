@@ -1,6 +1,6 @@
-# 🚀 SocialFlow — AI-Powered Social Media Marketing
+# 🌊 Mawja (موجه) — AI-Powered Social Media Marketing
 
-SocialFlow is a premium AI marketing system designed to automate social media content creation, scheduling, and analytics. It features a robust onboarding flow, secure authentication, and integrated payments.
+Mawja is a premium AI marketing system designed to automate social media content creation, scheduling, and analytics. It features a robust onboarding flow, secure authentication, and integrated payments.
 
 ## ✨ Key Features
 - **AI Content Generation**: Create high-quality text and images for social media using integrated AI workflows.
@@ -32,8 +32,8 @@ SocialFlow is a premium AI marketing system designed to automate social media co
 
 ### 2. Clone and Install
 ```bash
-git clone https://github.com/your-username/social-flow-app.git
-cd social-flow-app
+git clone https://github.com/your-username/mawja-app.git
+cd mawja-app
 npm install
 ```
 

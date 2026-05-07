@@ -1,6 +1,15 @@
 <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="64" height="64" rx="14" fill="#0075DE"/>
-  <path d="M46.8 20.4H23.6C20.9 20.4 18.8 22.5 18.8 25.2C18.8 27.9 20.9 30 23.6 30H36.7C38 30 39 31 39 32.3C39 33.6 38 34.6 36.7 34.6H17.2" stroke="white" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M42 43.6C45.3137 43.6 48 40.9137 48 37.6C48 34.2863 45.3137 31.6 42 31.6C38.6863 31.6 36 34.2863 36 37.6C36 40.9137 38.6863 43.6 42 43.6Z" fill="white"/>
-  <path d="M42 41.2C43.9882 41.2 45.6 39.5882 45.6 37.6C45.6 35.6118 43.9882 34 42 34C40.0118 34 38.4 35.6118 38.4 37.6C38.4 39.5882 40.0118 41.2 42 41.2Z" fill="#0075DE"/>
+  <defs>
+    <linearGradient id="mawja-pub-grad" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#4f46e5"/>
+      <stop offset="100%" stop-color="#0ea5e9"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="url(#mawja-pub-grad)"/>
+  <path d="M10 22 C17 16, 24 30, 32 22 C40 14, 47 28, 54 22"
+    stroke="white" stroke-width="4" stroke-linecap="round" fill="none" opacity="0.5"/>
+  <path d="M10 32 C17 26, 24 40, 32 32 C40 24, 47 38, 54 32"
+    stroke="white" stroke-width="4" stroke-linecap="round" fill="none" opacity="0.8"/>
+  <path d="M10 42 C17 36, 24 50, 32 42 C40 34, 47 48, 54 42"
+    stroke="white" stroke-width="4" stroke-linecap="round" fill="none"/>
 </svg>

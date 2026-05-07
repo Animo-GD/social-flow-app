@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
       .or(`email.eq.${email},username.eq.${email}`)
       .single();
 
-    const isDemo = email === 'admin@socialflow.ai' && password === 'demo';
+    const isDemo = email === 'admin@mawja.ai' && password === 'demo';
 
     if (!userRow) {
       if (isDemo) {
