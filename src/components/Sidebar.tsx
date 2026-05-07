@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard, FileText, MessageCircle, BarChart2,
-  Settings, TrendingUp, LogOut, Building2, Shield, X, CreditCard, UserCircle, LayoutTemplate
+  Settings, Image as ImageIcon, Edit3, LogOut, Building2, Shield, X, CreditCard, UserCircle, LayoutTemplate
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useLang } from '@/lib/LanguageContext';
@@ -15,9 +15,10 @@ import Logo from '@/components/Logo';
 const NAV: { href: string; key: TranslationKey; icon: React.ComponentType<{ size?: number }> }[] = [
   { href: '/dashboard',            key: 'nav_overview',   icon: LayoutDashboard },
   { href: '/dashboard/posts',      key: 'nav_posts',      icon: FileText },
+  { href: '/dashboard/gallery',    key: 'nav_gallery',    icon: ImageIcon },
+  { href: '/dashboard/studio',     key: 'nav_studio',     icon: Edit3 },
   { href: '/dashboard/messages',   key: 'nav_messages',   icon: MessageCircle },
   { href: '/dashboard/analytics',  key: 'nav_analytics',  icon: BarChart2 },
-  { href: '/dashboard/trends',     key: 'nav_trends',     icon: TrendingUp },
   { href: '/dashboard/templates',  key: 'nav_templates',  icon: LayoutTemplate },
   { href: '/dashboard/settings',   key: 'nav_settings',   icon: Settings },
 ];

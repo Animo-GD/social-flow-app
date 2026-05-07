@@ -7,7 +7,8 @@ export const translations = {
     nav_posts: 'Content & Posts',
     nav_messages: 'Messages',
     nav_analytics: 'Analytics',
-    nav_trends: 'Trends',
+    nav_gallery: 'Gallery',
+    nav_studio: 'Studio',
     nav_templates: 'Templates',
     nav_profile: 'My Profile',
     nav_admin: 'Admin',
@@ -103,21 +104,19 @@ export const translations = {
     admin_created_col: 'Created At',
     admin_delete_btn: 'Delete',
     admin_empty: 'No users found',
-
-    // Trends page
-    page_trends_title: 'Trending Topics',
-    page_trends_sub: "Discover what's gaining traction on social platforms",
-    hottest_trend: 'Hottest Trend',
-    avg_growth: 'Avg Growth',
-    avg_growth_sub: 'Across tracked topics',
-    tracked_topics: 'Tracked Topics',
-    tracked_topics_sub: 'Updated hourly',
-    col_topic: 'Topic',
-    col_growth: 'Growth',
-    col_posts_count: 'Posts',
     col_action: 'Action',
-    btn_create_post: 'Create Post',
-    trending_label: 'Top Trending Topics',
+
+    // Gallery page
+    page_gallery_title: 'Gallery',
+    page_gallery_sub: 'View your generated images and videos',
+    
+    // Studio page
+    page_studio_title: 'Studio',
+    page_studio_sub: 'Edit images, add text and animations',
+    studio_add_text: 'Add Text',
+    studio_animation: 'Animation',
+    studio_color: 'Color',
+    studio_text_placeholder: 'Type here...',
 
     // Login
     login_welcome: 'Welcome back',
@@ -148,7 +147,6 @@ export const translations = {
     tone_sales: 'Sales',
     lang_english: 'English',
     lang_arabic: 'Arabic (العربية)',
-    lang_french: 'French',
     this_week: 'this week',
   },
   ar: {
@@ -157,7 +155,8 @@ export const translations = {
     nav_posts: 'المحتوى والمنشورات',
     nav_messages: 'الرسائل',
     nav_analytics: 'التحليلات',
-    nav_trends: 'التريند',
+    nav_gallery: 'المعرض',
+    nav_studio: 'الاستوديو',
     nav_templates: 'القوالب',
     nav_profile: 'ملفي الشخصي',
     nav_admin: 'لوحة المطور',
@@ -253,21 +252,19 @@ export const translations = {
     admin_created_col: 'تاريخ الإنشاء',
     admin_delete_btn: 'حذف',
     admin_empty: 'لا يوجد مستخدمون',
-
-    // Trends page
-    page_trends_title: 'التريند',
-    page_trends_sub: 'اكتشف ما يكتسب زخمًا على منصات التواصل الاجتماعي',
-    hottest_trend: 'أكثر الاتجاهات سخونة',
-    avg_growth: 'متوسط النمو',
-    avg_growth_sub: 'عبر المواضيع المتتبعة',
-    tracked_topics: 'المواضيع المتتبعة',
-    tracked_topics_sub: 'يُحدَّث كل ساعة',
-    col_topic: 'الموضوع',
-    col_growth: 'النمو',
-    col_posts_count: 'المنشورات',
     col_action: 'إجراء',
-    btn_create_post: 'إنشاء منشور',
-    trending_label: 'أبرز التريندات',
+
+    // Gallery page
+    page_gallery_title: 'المعرض',
+    page_gallery_sub: 'عرض الصور والفيديوهات التي قمت بتوليدها',
+    
+    // Studio page
+    page_studio_title: 'الاستوديو',
+    page_studio_sub: 'تعديل الصور، وإضافة نصوص وتأثيرات حركية',
+    studio_add_text: 'إضافة نص',
+    studio_animation: 'حركة',
+    studio_color: 'اللون',
+    studio_text_placeholder: 'اكتب هنا...',
 
     // Login
     login_welcome: 'مرحبًا بعودتك',
@@ -298,7 +295,6 @@ export const translations = {
     tone_sales: 'مبيعات',
     lang_english: 'English',
     lang_arabic: 'Arabic (العربية)',
-    lang_french: 'French',
     this_week: 'هذا الأسبوع',
   },
 } as const;

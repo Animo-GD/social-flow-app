@@ -583,14 +583,6 @@ export default function PostsPage() {
             <FileText size={14} style={{ marginInlineEnd: 6, verticalAlign: 'middle' }} />{isAr ? 'المنشورات' : 'Posts'}
             {posts && <span className="badge" style={{ marginInlineStart: 8 }}>{posts.length}</span>}
           </button>
-          <button className={`tab-btn${tab === 'images' ? ' active' : ''}`} onClick={() => setTab('images')}>
-            <ImageIcon size={14} style={{ marginInlineEnd: 6, verticalAlign: 'middle' }} />{isAr ? 'الصور' : 'Images'}
-            {imagesCount > 0 && <span className="badge" style={{ marginInlineStart: 8 }}>{imagesCount}</span>}
-          </button>
-          <button className={`tab-btn${tab === 'videos' ? ' active' : ''}`} onClick={() => setTab('videos')}>
-            <Video size={14} style={{ marginInlineEnd: 6, verticalAlign: 'middle' }} />{isAr ? 'الفيديوهات' : 'Videos'}
-            {videosCount > 0 && <span className="badge" style={{ marginInlineStart: 8 }}>{videosCount}</span>}
-          </button>
         </div>
 
         {tab === 'create' && (
@@ -630,7 +622,6 @@ export default function PostsPage() {
                 <select id="lang" className="form-select" value={form.language} onChange={e => setForm(f => ({ ...f, language: e.target.value }))}>
                   <option value="en">{t('lang_english')}</option>
                   <option value="ar">{t('lang_arabic')}</option>
-                  <option value="fr">{t('lang_french')}</option>
                 </select>
               </div>
 
@@ -773,26 +764,41 @@ export default function PostsPage() {
 
                   {/* Schedule & Save footer */}
                   <div style={{ padding: '14px 16px', borderTop: '1px solid var(--color-border-light)', display: 'flex', flexDirection: 'column', gap: 10 }}>
-                    <input
-                      type="datetime-local"
-                      className="form-input"
-                      value={scheduleAt}
-                      onChange={e => setScheduleAt(e.target.value)}
-                      placeholder={t('label_schedule_datetime')}
-                      style={{ fontSize: '0.88rem' }}
-                    />
-                    <button
-                      className="btn btn-primary"
-                      onClick={handleSchedule}
-                      disabled={scheduleMutation.isPending || updateMutation.isPending}
-                      style={{ width: '100%', justifyContent: 'center' }}
-                    >
-                      {scheduleMutation.isPending || updateMutation.isPending
-                        ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />
-                        : <Calendar size={14} />
-                      }
-                      {scheduleAt ? t('btn_schedule_post') : 'Save Post'}
-                    </button>
+                    {(generatingActionType === 'generate_text' || generatingActionType === 'generate_full_post') && (
+                      <>
+                        <input
+                          type="datetime-local"
+                          className="form-input"
+                          value={scheduleAt}
+                          onChange={e => setScheduleAt(e.target.value)}
+                          placeholder={t('label_schedule_datetime')}
+                          style={{ fontSize: '0.88rem' }}
+                        />
+                        <button
+                          className="btn btn-primary"
+                          onClick={handleSchedule}
+                          disabled={scheduleMutation.isPending || updateMutation.isPending}
+                          style={{ width: '100%', justifyContent: 'center' }}
+                        >
+                          {scheduleMutation.isPending || updateMutation.isPending
+                            ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />
+                            : <Calendar size={14} />
+                          }
+                          {scheduleAt ? t('btn_schedule_post') : 'Save Post'}
+                        </button>
+                      </>
+                    )}
+
+                    {(generated.image_url || generated.video_url) && (
+                      <a 
+                        href={`/dashboard/studio?media_url=${encodeURIComponent(generated.image_url || generated.video_url || '')}`}
+                        className="btn btn-secondary" 
+                        style={{ width: '100%', justifyContent: 'center', textDecoration: 'none' }}
+                      >
+                        <ImageIcon size={14} style={{ marginInlineEnd: 6 }} />
+                        Edit in Studio
+                      </a>
+                    )}
                   </div>
                 </div>
               ) : (
